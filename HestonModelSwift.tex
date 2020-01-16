@@ -1,0 +1,381 @@
+\documentclass[12,twoside]{mammeTFM}
+%\usepackage[active]{srcltx}
+\usepackage{amsthm} % To make environments with different styles.
+\usepackage{amsmath,amssymb,amsfonts} % Multiple mathematics symbols and fonts.
+%\usepackage{amscd} % To make commutative diagrams
+\usepackage{graphicx} % To include figures in a simple way. Fancy options can be found for example in http://www.kwasan.kyoto-u.ac.jp/solarb6/usinggraphicx.pdf
+\usepackage{enumerate} % It allows you to make list with specific somehow arbitrary labels, like this one.
+%\usepackage[all]{xy} % To make really fancy commutative diagrams
+\usepackage{booktabs} % To make fancy tables.
+%\usepackage[usenames]{xcolor}
+%\usepackage{fancyhdr}
+
+%%%%% My packages (Should probably push all the header to a certain file and include it in each latex.
+
+%\usepackage[left=15mm, right=15mm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{bigfoot}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{epstopdf}
+\usepackage{vhistory}
+\usepackage{framed}
+\usepackage{hyperref}
+\usepackage{cancel}
+
+\setlength{\parskip}{11pt}
+
+% Theorem Environments: add extra ones at the end if you need it.
+\newtheorem*{thmA}{Theorem A}
+\newtheorem{thm}{Theorem}[section]
+
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{conj}[thm]{Conjecture}
+
+\theoremstyle{definition}
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{exmp}[thm]{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[thm]{Remark}
+\newtheorem*{remarknonumber}{Remark}
+\newtheorem{observation}[thm]{Observation}
+%%% My own theorems
+\newtheorem{main_thm}[thm]{Main Theorem}
+
+%% rme, rmi e Id son el número e, el número imaginario i y la identidad respectivamente. Poned ds antes de una expresión
+%% cuando salga mal (en las fracciones y cosas parecidas)
+\def\ds{\displaystyle}
+\def\rme{\mathrm{e}}
+\def\rmi{\mathrm{i}}
+\def\Id{\mathrm{Id}}
+\def\resposta{\bullet\bullet\bullet\bullet\bullet\bullet}
+
+%%%%%%%%%%%%%%%%%%
+% macros/abbreviations: Include here your own.
+%%%%%%%%%%%%%%%%%%
+
+%% Conjuntos típicos.
+\newcommand{\N}{\ensuremath{\mathbb{N}}}
+\newcommand{\E}{\ensuremath{\mathbb{E}}}
+\newcommand{\Z}{\ensuremath{\mathbb{Z}}}
+\newcommand{\Q}{\ensuremath{\mathbb{Q}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+\newcommand{\C}{\ensuremath{\mathbb{C}}}
+\newcommand{\F}{\ensuremath{\mathbb{F}}}
+\newcommand{\MP}{\ensuremath{\mathbb{P}}}
+
+% math stuff
+\newcommand{\Expect}{\ensuremath{{\rm I\kern-.3em E}}}
+\newcommand{\Var}{\ensuremath{\mathrm{Var}}}
+\newcommand{\Cov}{\ensuremath{\mathrm{Cov}}}
+
+% random
+\makeatletter
+\newcommand{\raisemath}[1]{\mathpalette{\raisem@th{#1}}}
+\newcommand{\raisem@th}[3]{\raisebox{#1}{$#2#3$}}
+\makeatother
+
+\newcommand{\function}[5]{\begin{align*} #1\colon #2 &\to #3 \\ #4 &\mapsto #5\end{align*}}
+\newcommand{\vega}{\nu}
+
+%% Si una palabra se parte mal al final de linea la poneis aqui
+\hyphenation{Bar-ce-lo-na}
+
+%% Ejemplo de como hacer una tabla.
+
+%\begin{tabular}{|r|c|c|}
+%\hline
+%$n$	&nº bits (estándar)	&nº bits (\emph{sp. triplet})\\
+%\hline
+%10   	  &  6400       	& 3040\\
+%\hline
+%50   	  & 160000    	& 78400\\
+%\hline
+%100 	  & 640000    	& 314320\\
+%\hline
+%200 	  & 2560000  	& 1262320\\
+%\hline
+%400 	  & 10240000	&5043680\\
+%\hline
+%650 	  & 27040000	&13282720\\
+%\hline
+%1000 	  & 64000000	&31479040\\
+%\hline
+%\end{tabular}
+
+
+%% Ejemplo de como hacer una figura
+
+%\begin{figure}[ht]
+%\centering
+%\includegraphics[width=6cm,angle=-90]{exemple.eps}
+%\caption{Corba de continuaci\'o d'$u_2$ com a funci\'o de $\lambda$.}
+%\label{fig:etiqueta}
+%\end{figure} 
+
+%% se puede hacer \input{archivo.tex} en lugar de \includegraphics
+
+%% Y de como hacerle referencia
+
+% bla bla bla en la Figura~\ref{fig:etiqueta}
+
+
+% Body of document
+
+\titol{This is the long title\\[3mm] with a line skip}
+\titolcurt{Heston Calibration using SWIFT}
+\authorStudent{Eudald Romo Grau}
+\supervisors{(name of the supervisor/s of the master's thesis)}
+\monthYear{Month, year}
+
+%\msc[2010]{Primary  	55M25, 57P10, Secondary 55P15, 57R19, 57N15.}
+
+\paraulesclau{Derivatives Trading, Heston, SWIFT, calibration}
+\agraiments{
+Thanks to...}
+
+
+\abstracteng{This should be an abstract in English, up to 1000 characters.}
+
+%%%%%%%%%
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\pagebreak
+
+% The expected structure is explained in https://bibliotecnica.upc.edu/estudiants/6-passos-que-teu-tfg/tfm-sigui-exit/escric-meu-tfg/tfm#criteris-grafics
+\chapter{Introduction}
+
+\section{Motivation}
+
+Option pricing has an important role in contract trading, both as a form of derivative trading in itself, as a way to hedge other stock or derivative portfolios.
+
+Pricing these options can have a broad range of difficulty, mainly due to two factors:
+\begin{enumerate}[\bf (1)]
+\item {\tt Contract type: } These options can take a variety of forms, from the vanilla European Options to more complex American or Asian options (TODO: citations).
+\item {Underlying Model: } The price of the derivative depends on the future price of its underlying. The evolution of this price can be modeled using simpler models like Black \& Scholes, or using other models that take into account more theoretical results related to the underlying price evolution, like the Heston model. {TODO: citations, add more models.}
+\end{enumerate}
+
+There are only closed analytic solutions for the Option pricing problem for the simpler contracts and models: European options under BS and can have no analytic solution when one either trades a more complicated contract (like American options) or uses a more complex model (like Heston) to model its dynamics.
+
+The advantage of simpler models tend to be faster computations and possibly analytic functions to compute the price. On the other hand, they fail to capture more complex behavior of the market.
+
+For example, BS is probably the most used model in real option trading (TODO: back this up) but fails to capture the well-known high kurtosis and negative skewness of the log returns volatility (which motivated the development of the Heston model).
+
+Most of these models can be used to price different strikes using a set of intrinsic parameters. Usually this parameters are calibrated either using historical data or using data from options with the same underlying at different strikes and, sometimes, different maturities. (TODO: Cite) In the second calibration mode, which is usually used in the trading world, particularly in high frequency trading, (TODO: cite) fast option calculation methods and model calibration techniques are required to be able to update the model in real time.
+
+A branch of numerical option pricing that, given a density function (and the value of its parameters) to describe the stochastic evolution of the underlying over time, use its characteristic function to valuate the price of the option with different strikes and maturities.
+
+Recently, there has been both work in fast option pricing numerical techniques using characteristic functions (TODO: cite) and giving simple expressions for the characteristic function (TODO: cite) of the Heston model (its previous expressions either had complex variable discontinuities that translated in numeric problems (TODO: cite) or complicated derivative expressions, which made it difficult to use in gradient descent based methods).
+
+This work is centered around the calibration of the Heston model for European Options (choosing proper values of the model parameters to minimize the option valuation error) by using a gradient descent method (TODO: name properly) valuating the option and its partial derivatives using the new characteristic function approach in the SWIFT setup.
+
+\section{Previous work}
+
+\section{Option Valuation}
+
+\begin{definition}
+An European Option is a derivative contract on an underlying asset that fixes a transaction price (called \textbf{strike price}), an expiration time (also called \textbf{maturity}), and an \textbf{underlying} asset quantity and gives the holder of the contract the right (but not the obligation) of buying (Call Option) or selling (Put Option) the specified quantity of the underlying at the Srike price on expiration.
+\end{definition}
+
+In the following sections we will use the following nomenclature for Option parameters: $t$ will refer to the time at which the option is being valuated and $T$ will be the expiration time. Given a time-dependent variable $V$, $V_t$ will refer to the value of that variable at time $t$ (respectively with $T$). $S, K$ will refer to the underlying and the strike prices respectively.
+
+Slight variations of these terms can give rise to other families of options by facilitating the exercising of the contracts, like the Bermudan and American options (which allow to exercise your buying/selling right at specified instants of time or at any point prior to expiry, respectively).
+
+Other groups of option families are obtained by changing the definition of the option payoff, that is, the amount of money (be it in cash or in the value of the underlying obtained) the option gives on expiration.
+
+\begin{definition} Payoff of a Call European option:
+$$
+v_EC(y, T) = \left\{ \begin{array}{rcl}
+S_T - K & \mbox{if} & S_T > K \\ 
+0 & \mbox{if} & S_T\leq K
+\end{array}\right.
+$$
+\end{definition}
+
+Some examples of other families of functions that have different payoffs are Binary Options (only have two possible payoffs dependent on $K$ and $S_T$) and Asian Options (the payoff depends on the mean price of the underlying since the start of the contract and until maturity).
+
+% TODO: Some discussion on how the nature of the contract affects the difficulty of pricing it.
+
+\subsection{Risk neutrality}\label{subsec:riskneu}
+Put-Call parity (that's why we only talk about Calls in this article)
+Model
+Log-Returns
+
+\subsection{European Option Valuation}
+European options only depend on the final price of the underlying asset on the moment of expiration of the contract. Thus, if we model the underlying asset's price with an stochastic process, the discounted expectation (TODO: Explain in \ref{subsec:riskneu}) (under risk neutrality assumptions) of the gain one will obtain by holding the contract can be computed by integrating the density function of the price of the asset at expiry.
+\begin{equation}\label{eq:option_valuation}
+v(x,t) = e^{-r(T - t)}\E^{\Q}(v(y, T)|x) = e^{-r(t - T)} \int_{\R}v(y,T)f(y|x)dy
+\end{equation}
+
+, where v denotes the option value, r the risk-neutral interest rate, $\E^Q$ the expectation under the risk-neutral measure, and x and y denote state variables that fully describe the underlying asset process state at times t and T respectively.
+
+
+
+There is broad literature in methods to solve this integration problem for basic underlying asset models. Some simpler models, as Black and Scholes even have closed solutions (TODO: ref BS formula),
+but they typically use models for the natural logarithm of the contract returns (Given a starting initial price $S_0$ and a final price $S_T$ the returns are defined as $\dfrac{S_T}{S_0}$), as they appear to follow simpler stochastic processes. For some more complex models the probability function at expiry doesn't have a known expression but it's characteristic function does, so several methods have been developed using numerical integration and the Fourier transform. the probability distributions do not have known expressions (TODO: cite).
+
+\section{Black and Scholes}
+
+\section{L\'evy Processes in Option Pricing}
+Some well known underlying asset log returns models, as the Geometric Brownian Motion (GBM) model (known as the Black-Scholes-Merton\cite{bs73, mer73} model), use a general concept called L\'evy processes, which have a known Fourier transform.
+
+\begin{definition} A stochastic process $X = \{X_t : t \geq 0\}$ is considered a L\'evy process if:
+\begin{itemize}
+\item $X_0 = 0$ almost surely.
+\item For any $0 \leq t_1 \leq t_2 \leq \cdots \leq t_n \leq \infty$, $X_{t_2} - X_{t_1}, X_{t_3} - X{t_2}, \cdots X{t_n} - X_{t_{n-1}}$ are independent.
+\item $\forall s < t$, $X_t - X_s$ is equal in distribution to $X_{t-s}$
+\end{itemize}
+\end{definition}
+
+A famous property of L\'evy processes is the L\'evy-Khintchine formula:
+\begin{lem}\label{levy_khin} Let $X = (X_t)_{t\geq 0}$ be a L\'evy process. Then its characteristic function $Char_X(\omega)$ is:
+$$
+Char_X(\omega)(t) := \E \left[e^{i\theta X(t)}\right] = e^{t\left(ai\omega - \dfrac{\sigma^2 \omega^2}{2} + \int_{\{0\}^c}(e^{i\omega x} \textbf{I}_{|x| < 1})\Pi(dx)\right)} = e^{\psi_L(w)}
+$$
+, where $\psi_L(\omega)$ is called the characteristic L\'evy exponent, and $a \in \R$, $\sigma \geq 0$, and $\Pi$ is the L\'evy measure of X, a $\sigma$-finite measure satisfying $\int_{\{0\} ^c}(1 \wedge x^2)\Pi (dx) < \infty$
+\end{lem}
+
+Note that any L\'evy process can be completely characterized by the triplet $(a, \sigma, \Pi)$. Also, the 
+
+
+%%% TODO: Maybe move all this to the European options section
+%%% TODO: Expand on the risk-neutral valuation and Feynman-Kac.
+The evaluation of an European option can be obtained through equation \ref{eq:option_valuation}.
+
+
+
+\subsection{Black-Scholes-Merton Model}
+
+\section{Heston Model}
+
+\section{Multi Resolution Analysis and Shannon Wavelets}
+
+\subsection{Multi Resolution Analysis} \label{def:mra}
+Multi Resolution Analysis (MRA) is a method that ultimately allows to express any function in $L^2(\R)$ using a countable orthogonal family of wavelets. This family can then be truncated into a finite family and the original function can be orthogonally projected into the resulting subspace, obtaining an approximation with a certain level of resolution. Increasing the considered number of members of the wavelet family will increase the resolution of the approximation, converging to a perfect representation when all the wavelets are used \cite{tour}.
+
+Given the space $L^2(\R) = \left\{f: \int_{-\infty}^{\infty}{|f(x)|^2 dx < \infty} \right\}$, a Multi Resolution Analysis is defined as 
+a family of nested successive approximation closed spaces:
+$$ \cdots \subset V_{-2} \subset V_{-1} \subset V_0 \subset V_1 \subset V_2 \subset \cdots $$
+
+Where the subpsaces $V_i$ are complete (they are not redundant and cover $L^2(\R)$:
+$$\overline{\bigcup_{i\in{\Z}}{V_i}} = L^2(\R) \text{, and } \bigcap_{m\in{\Z}} = {0}$$
+
+, they have self-similarity in scale (all spaces are geometric scalings of $V_0$ by powers of 2):
+$$ f(x) \in V_i \Leftrightarrow f(2x) \in V_{i + 1} $$
+
+, they have self-similarity in time:
+$$ f(x) \in V_0 \Rightarrow f(x - k) \in V_0, \forall k \in \Z $$
+
+(Note that self-similarity in scale implies that the self-similarity in time translates to all spaces $V_i$ as $f(x) \in V_i \rightarrow f(x - 2^i k) \in V_i$.), and the integer shifts of a (or a finite group of) generator function $\phi$ form an orthogonal basis of $V_0$. 
+
+In summary, we can define:
+
+\begin{definition} \label{def:mra} (MRA): Consider $\phi \in L^2(\R)$ a wavelet that spans the family $\{\phi_{m,k}\}m,k\in\Z$ defined as the normalized scaled integer shifts of $\phi$. That is, $\phi_{m,k} = 2^{m/2}\phi(2^m x - k)$, and let $V_m := closure_{L^2(\R)}\left\langle\{\phi_{m,k}\}_{k \in \Z}\right\rangle$ 
+\end{definition}
+
+Then, if $\phi$ and $V_m$ fulfill the conditions above, we say that $\phi$ is the scaling function or father wavelet of the MRA $\{V_m\}$ (note that the previous definition properly defines $\{V_m\}$ as a sequence of nested subspaces and that $\phi$ provides an orthonormal basis for each of them).
+
+One of the important implications of obtaining a father wavelet and its MRA is that another wavelet family can be obtained from it, which will be a basis of $L^2(\R)$. In order to do that, let's consider the set of subspaces $W_m$ such that $V_{m+1} = V_m \oplus W_m$. Then $L^2(\R) = \sum_m{\oplus W_m}$ and there exists a function $\psi \in W_0$ (called mother wavelet) that generates an orthonormal basis of $L^2(\R)$ \cite{dau92} by defining the wavelet functions:
+$$ \psi_{m, k} = 2^{m/2}\psi(2^m x - k)$$
+. Note that each $\{W_{m,k}\}_{k \in \Z}$ gives an orthonormal basis of $W_m$, and $\{W_{m_k}\}_{m\in [-\infty, m-1], k \in \Z}$ is an orthonormal basis of $V_m$. So for any $m \in \Z$ we can define a projection mapping $P_m$ from any function $f \in L^2(\R)$ into $V_m$:
+$$ P_m f(x) = \sum_{j = -\infty}^{m-1} \sum_{k \in \Z} d_{j,k} \psi_{j, k}(x) = \sum_{k \in \Z} c_{m, k} \phi_{m, k}(x)$$
+, where $d_{j, k} = \left\lbrace f,\psi_{j, k}\right\rbrace$, $c_{m, k} = \left\lbrace f,\phi_{m, k}\right\rbrace$, and $\left\lbrace f,g\right\rbrace = \int_\R f(x) \overline{g(x)} dx$. Further, this projection converges in the $L^2$ norm as m tends to infinity \cite{tour}.
+
+\subsection{Shannon Wavelets}
+Claude Shannon introduced the usage of the cardinal sine function for information modeling \cite{sha49}:
+$$ sinc(x) := \left\{ \begin{array}{rcl} \dfrac{sin(\pi x)}{\pi x} & \mbox{for} & x \neq 0 \\ 1 & \mbox{for} & x = 0 \end{array}\right.$$
+
+This function serves as the father wavelet from which we obtain the families $\phi_{m, k}$ and $\psi_{m_k}$:
+$$\begin{array}{rcl}
+\phi_{m,k}(x) = 2^{m/2} \dfrac{sin(\pi (2^m x - k))}{\pi (2^m x - k)}, & k \in \Z
+\end{array}$$
+$$\begin{array}{rcl}
+\psi_{m,k}(x) = 2^{m/2} \dfrac{sin(\pi (2^m x - k - 1/2)) - sin(2 \pi (2^m x - k - 1/2))}{\pi (2^m x - k - 1/2)}, & k \in \Z
+\end{array}$$
+
+Shannon wavelets are interesting in part because while they have a slow decay in time domain, they have a simple expression and sharp compact support in the frequency domain.
+
+$$\begin{array}{rcl}
+\hat{\phi}_{m,k}(x) = \dfrac{e^{-i k/2^m w}}{2^{m/2}}rect \left(\dfrac{w}{2^{m+1}\pi}\right), & k \in \Z
+\end{array}$$
+$$\begin{array}{rcl}
+\hat{\psi}_{m,k}(x) = -\dfrac{e^{-i \dfrac{k + 1/2}{2^m} w}}{2^{m/2}} \left(rect \left(\dfrac{w}{2^{m}\pi} - \dfrac{3}{2}\right) + rect \left(-\dfrac{w}{2^{m}\pi} - \dfrac{3}{2}\right) \right), & k \in \Z
+\end{array}$$
+
+When using Shannon Wavelets to approximate a function with a truncated wavelet expansion \cite{mar17} shows a bound for the projection error into $V_m$, by using concepts of band-limited functions.
+
+\begin{definition} A function f is called band-limited if $\exists B \in \R^+$, with $B < \infty$ such that
+$$
+f(x) = \dfrac{1}{2\pi} \int_{-B \pi}^{B \pi} \hat{f}(\omega) e^{i\omega x}d\omega 
+$$
+, that is, the support of $\hat{f}$ is contained in the interval $[-B, B]$. The parameter B is referred to as the bandwidth of f.
+\end{definition}
+
+The nested subspaces of a Shannon MRA can be expressed in terms of band-limited functions because of the sinc Fourier transform rectangular shape, as stated in the following lemma from \cite{ste11}
+
+\begin{lem} Consider an MRA generated from the Shannon scaling function as defined in \ref{def:mra}, then each subspace $V_m$ corresponds to the space of functions $f \in L^2(\R)$ with bandwidth $B \leq 2^m$
+\end{lem}
+
+Combining this lemma with the $L^2$ convergence of the projections $P_m$ of $f$ into $V_m$ yields the following corollary \cite{mar17}
+
+\begin{cor} The orthogonal projection $P_m$ of a Shannon MRA is equivalent to:
+$$
+P_m f(x) = \dfrac{1}{2 \pi} \int_{-2^m \pi}^{2^m \pi} \hat{f}(\omega) e^{i \omega x} d \omega
+$$
+\end{cor}
+
+Which, in turn, can be used to derive the following bound to the error of the orthogonal projection.
+
+\begin{definition}Given $f \in L^2(\R)$, let $H(\xi)$ be:
+$$
+H(\xi) := \dfrac{1}{2 \pi} \int_{|\omega| > \xi}\left|\hat{f}(\omega)\right| d\omega
+$$
+, the normalized mass of the two-side tails of $\hat{f}$ defined by $\xi$.
+\end{definition}
+
+\begin{lem} Let $\epsilon_m(x) := f(x) - P_m f(x)$ (the pointwise approximation error due to the projection of f into $V_m$). Then $|\epsilon_m(x)| \leq H(2^m \pi)$ \cite{mar17}
+\end{lem}
+
+\section{SWIFT}
+
+Given a certain stochastic model for the underlying log returns price evolution over time and its density function f (equation \ref{eq:option_valuation}) chosen to valuate the options and its correspondent characteristic function $\hat{f}(w) = \int_{\R} e^{-iwx} f(x) dx$, Shannon Wavelets Inverse Fourier Technique combines Shannon Wavelets and $\hat{f}$ to truncate f at a fixed approximation level m and provide a fast way to obtain the Fourier coefficients and recover the time domain ones through fast Fourier transform. (TODO: Cite)
+
+\subsection{Coefficients via Vieta's formula}
+$$
+c_{m,k} \approx c^*_{m,k} = \dfrac{2^{m/2}}{2^{J-1} \sum_{j=1}^{2^{J-1}}} \R \left[\hat{f}\left(\dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
+$$
+
+\subsection{Sinc Integral}
+SWIFT works with the cardinal sinc function and it needs to evaluate it's integral $Si(t) = \int_0^t{sinc(x) dx}$ for which there's no closed form. This problem was addressed in \cite{abr15_1, abr15_2} by using a combination of Vieta's formula and a cosine product-to-sum identity, resulting in an approximation by an incomplete cosine expansion
+
+\section{Goal}
+
+\chapter{Body}
+
+\chapter{Numerical Results}
+
+\chapter{Conclusions}
+
+\section{Bibliography}
+
+%\newpage
+
+\bibliography{biblio}{}
+\bibliographystyle{plain}
+
+%______________________________________________________________
+\appendix
+\vfill\newpage \section{Title of the appendix}
+You can include here an appendix with details that can not be included in the core of the document. You should reference the sections in this appendix in the core document.
+\vfill\newpage \section{Title of the appendix}
+Second appendix.
+
+\end{document}
