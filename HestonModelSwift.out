@@ -3,17 +3,24 @@
 \BOOKMARK [1][-]{section.3}{Option Valuation}{}% 3
 \BOOKMARK [2][-]{subsection.3.1}{Risk neutrality}{section.3}% 4
 \BOOKMARK [2][-]{subsection.3.2}{European Option Valuation}{section.3}% 5
-\BOOKMARK [1][-]{section.4}{Black and Scholes}{}% 6
-\BOOKMARK [1][-]{section.5}{L\351vy Processes in Option Pricing}{}% 7
-\BOOKMARK [2][-]{subsection.5.1}{Black-Scholes-Merton Model}{section.5}% 8
-\BOOKMARK [1][-]{section.6}{Heston Model}{}% 9
-\BOOKMARK [1][-]{section.7}{Multi Resolution Analysis and Shannon Wavelets}{}% 10
-\BOOKMARK [2][-]{subsection.7.1}{Multi Resolution Analysis}{section.7}% 11
-\BOOKMARK [2][-]{subsection.7.2}{Shannon Wavelets}{section.7}% 12
-\BOOKMARK [1][-]{section.8}{SWIFT}{}% 13
-\BOOKMARK [2][-]{subsection.8.1}{Coefficients via Vieta's formula}{section.8}% 14
-\BOOKMARK [2][-]{subsection.8.2}{Sinc Integral}{section.8}% 15
-\BOOKMARK [1][-]{section.9}{Goal}{}% 16
-\BOOKMARK [1][-]{section.10}{Bibliography}{}% 17
-\BOOKMARK [1][-]{appendix.A}{Title of the appendix}{}% 18
-\BOOKMARK [1][-]{appendix.B}{Title of the appendix}{}% 19
+\BOOKMARK [2][-]{subsection.3.3}{Volatility smile and surface}{section.3}% 6
+\BOOKMARK [1][-]{section.4}{Black and Scholes}{}% 7
+\BOOKMARK [1][-]{section.5}{L\351vy Processes in Option Pricing}{}% 8
+\BOOKMARK [2][-]{subsection.5.1}{Underlying Process Modeling}{section.5}% 9
+\BOOKMARK [1][-]{section.6}{Heston Model}{}% 10
+\BOOKMARK [2][-]{subsection.6.1}{Calibration Difficulties}{section.6}% 11
+\BOOKMARK [1][-]{section.7}{Multi Resolution Analysis and Shannon Wavelets}{}% 12
+\BOOKMARK [2][-]{subsection.7.1}{Multi Resolution Analysis}{section.7}% 13
+\BOOKMARK [2][-]{subsection.7.2}{Shannon Wavelets}{section.7}% 14
+\BOOKMARK [1][-]{section.8}{SWIFT}{}% 15
+\BOOKMARK [2][-]{subsection.8.1}{Coefficients via Vieta's formula}{section.8}% 16
+\BOOKMARK [2][-]{subsection.8.2}{Sinc Integral}{section.8}% 17
+\BOOKMARK [1][-]{section.9}{Calibration as an optimization problem}{}% 18
+\BOOKMARK [2][-]{subsection.9.1}{Objective Function}{section.9}% 19
+\BOOKMARK [1][-]{section.10}{Characteristic function and Gradient Calculation}{}% 20
+\BOOKMARK [1][-]{section.11}{Goal}{}% 21
+\BOOKMARK [1][-]{section.12}{Body}{}% 22
+\BOOKMARK [1][-]{section.13}{Numerical Results}{}% 23
+\BOOKMARK [1][-]{section.14}{Bibliography}{}% 24
+\BOOKMARK [1][-]{appendix.A}{Title of the appendix}{}% 25
+\BOOKMARK [1][-]{appendix.B}{Title of the appendix}{}% 26

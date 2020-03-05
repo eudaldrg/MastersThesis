@@ -1,52 +1,94 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
-\bibitem{dau92}
-I.~Daubechies.
-\newblock Ten lectures on wavelets.
-\newblock {\em CBMS-NSF Reg. Conf. Ser. Appl. Math.}, 1992.
+\bibitem{abr15_1}
+Sanjar~M. Abrarov and Brendan~M. Quine.
+\newblock {A Rational Approximation for Efficient Computation of the Voigt
+  Function in Quantitative Spectroscopy}.
+\newblock {\em Journal of Mathematics Research}, 7(2):163, jun 2015.
 
 \bibitem{bs73}
-Myron~Scholes Fischer~Black.
-\newblock The pricing of options and corporate liabilities.
+Fischer Black and Myron Scholes.
+\newblock {The pricing of options and corporate liabilities}.
 \newblock {\em Journal of Political Economy}, 81(3):637--654, 1973.
 
+\bibitem{che07}
+B~Chen.
+\newblock {Calibration of the Heston model with applications in derivative
+  pricing and hedging}.
+\newblock {\em Technical University of Delft(Master's thesis)}, 2007.
+
+\bibitem{cla11}
+I~Clark.
+\newblock {Foreign exchange option pricing: A practitioner's guide}.
+\newblock {\em Chichester: Wiley}, 2011.
+
+\bibitem{cui17}
+Yiran Cui, Sebastian {del Ba{\~{n}}o Rollin}, and Guido Germano.
+\newblock {Full and fast calibration of the Heston stochastic volatility
+  model}.
+\newblock {\em European Journal of Operational Research}, 263(2):625--638, dec
+  2017.
+
+\bibitem{dau92}
+I~Daubechies.
+\newblock {Ten Lectures on Wavelets}.
+\newblock {\em CBMS-NSF Reg. Conf. Ser. Appl. Math.}, 1992.
+
+\bibitem{gat06}
+J~Gatheral.
+\newblock {The volatility surface: A practitioner's guide}.
+\newblock {\em Finance}, 357, 2006.
+
+\bibitem{ger12}
+F~Gerlich, A~M Giese, J~Maruhn, and E~Sachs.
+\newblock {Parameter identification in financial market models with a feasible
+  point SQP algorithm}.
+\newblock {\em Computational Optimization and Applications}, 51(3):1137--1161,
+  2012.
+
+\bibitem{gil12}
+M~Gilli and E~Schumann.
+\newblock {Calibrating option pricing models with heuristics}.
+\newblock {\em Computational Optimization and Applications}, 51(3):1137--1161,
+  2012.
+
+\bibitem{jan11}
+Agnieszka Janek, Tino Kluge, Rafa{\l} Weron, and Uwe Wystup.
+\newblock {FX smile in the Heston model}.
+\newblock In {\em Statistical Tools for Finance and Insurance}, pages 133--162.
+  Springer Berlin Heidelberg, 2011.
+
 \bibitem{tour}
-S.G. Mallat.
-\newblock {\em A wavelet tour to signal processing}.
+S~G Mallat.
+\newblock {\em {A wavelet tour to signal processing}}.
 \newblock Academic Press, 1999.
 
+\bibitem{mar17}
+S~C Maree, L~Ortiz-Gracia, and C~W Oosterlee.
+\newblock {Pricing early-exercise and discrete barrier options by Shannon
+  wavelet expansions}.
+\newblock {\em Numer. Math.}, 136:1035--1070, 2017.
+
 \bibitem{mer73}
-Robert~C. Merton.
-\newblock Theory of rational option pricing.
+Robert~C Merton.
+\newblock {Theory of rational option pricing}.
 \newblock {\em Bell Journal of Economics and Management Science},
   4(1):141--183, 1973.
 
-\bibitem{mar17}
-C.W.~Oosterlee S.C.~Maree, L. Ortiz-Gracia.
-\newblock Pricing early-exercise and discrete barrier options by shannon
-  wavelet expansions.
-\newblock {\em Numer. Math.}, 136:1035--1070, 2017.
+\bibitem{mik03}
+S~Mikhalov and U~N{\"{o}}gel.
+\newblock {Heston's stochastic volatility model: Implementation, calibration,
+  and some extensions}.
+\newblock {\em Wilmott Magazine}, July:74--79, 2003.
 
 \bibitem{sha49}
-C.E. Shannon.
-\newblock Communication in the presence of noise.
+C~E Shannon.
+\newblock {Communication in the presence of noise}.
 \newblock {\em Proc. IRE}, 37:10--21, 1949.
 
-\bibitem{abr15_1}
-B.M.~Quine S.M.~Abramov.
-\newblock A rational approximation for efficient computation of the voigt
-  function in quantitative spectroscopy.
-\newblock {\em Journal of Math. Res.}, 7(2):163--174, 2015.
-
-\bibitem{abr15_2}
-B.M.~Quine S.M.~Abramov.
-\newblock Sampling by incomplete cosine expansion of the sinc function:
-  application to the voigt/complex error function.
-\newblock {\em Appl. Math. Comput.}, 258:425--435, 2015.
-
 \bibitem{ste11}
-F.~Stenger.
-\newblock Handbook of sinc numerical methods.
+F~Stenger.
+\newblock {Handbook of sinc numerical methods}.
 \newblock {\em CRC Press}, 2001.
 
 \end{thebibliography}

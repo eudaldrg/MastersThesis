@@ -1,20 +1,27 @@
 \babel@toc {english}{}
-\contentsline {section}{\numberline {1}Motivation}{3}{section.1}% 
-\contentsline {section}{\numberline {2}Previous work}{4}{section.2}% 
-\contentsline {section}{\numberline {3}Option Valuation}{4}{section.3}% 
-\contentsline {subsection}{\numberline {3.1}Risk neutrality}{4}{subsection.3.1}% 
-\contentsline {subsection}{\numberline {3.2}European Option Valuation}{5}{subsection.3.2}% 
-\contentsline {section}{\numberline {4}Black and Scholes}{5}{section.4}% 
-\contentsline {section}{\numberline {5}L\'evy Processes in Option Pricing}{5}{section.5}% 
-\contentsline {subsection}{\numberline {5.1}Black-Scholes-Merton Model}{6}{subsection.5.1}% 
-\contentsline {section}{\numberline {6}Heston Model}{6}{section.6}% 
-\contentsline {section}{\numberline {7}Multi Resolution Analysis and Shannon Wavelets}{6}{section.7}% 
-\contentsline {subsection}{\numberline {7.1}Multi Resolution Analysis}{6}{subsection.7.1}% 
-\contentsline {subsection}{\numberline {7.2}Shannon Wavelets}{7}{subsection.7.2}% 
-\contentsline {section}{\numberline {8}SWIFT}{9}{section.8}% 
-\contentsline {subsection}{\numberline {8.1}Coefficients via Vieta's formula}{9}{subsection.8.1}% 
-\contentsline {subsection}{\numberline {8.2}Sinc Integral}{9}{subsection.8.2}% 
-\contentsline {section}{\numberline {9}Goal}{9}{section.9}% 
-\contentsline {section}{\numberline {10}Bibliography}{9}{section.10}% 
-\contentsline {section}{\numberline {A}Title of the appendix}{11}{appendix.A}% 
-\contentsline {section}{\numberline {B}Title of the appendix}{12}{appendix.B}% 
+\contentsline {section}{\numberline {1}Motivation}{4}{section.1}% 
+\contentsline {section}{\numberline {2}Previous work}{5}{section.2}% 
+\contentsline {section}{\numberline {3}Option Valuation}{5}{section.3}% 
+\contentsline {subsection}{\numberline {3.1}Risk neutrality}{6}{subsection.3.1}% 
+\contentsline {subsection}{\numberline {3.2}European Option Valuation}{6}{subsection.3.2}% 
+\contentsline {subsection}{\numberline {3.3}Volatility smile and surface}{7}{subsection.3.3}% 
+\contentsline {section}{\numberline {4}Black and Scholes}{7}{section.4}% 
+\contentsline {section}{\numberline {5}L\'evy Processes in Option Pricing}{7}{section.5}% 
+\contentsline {subsection}{\numberline {5.1}Underlying Process Modeling}{7}{subsection.5.1}% 
+\contentsline {section}{\numberline {6}Heston Model}{8}{section.6}% 
+\contentsline {subsection}{\numberline {6.1}Calibration Difficulties}{9}{subsection.6.1}% 
+\contentsline {section}{\numberline {7}Multi Resolution Analysis and Shannon Wavelets}{11}{section.7}% 
+\contentsline {subsection}{\numberline {7.1}Multi Resolution Analysis}{11}{subsection.7.1}% 
+\contentsline {subsection}{\numberline {7.2}Shannon Wavelets}{12}{subsection.7.2}% 
+\contentsline {section}{\numberline {8}SWIFT}{13}{section.8}% 
+\contentsline {subsection}{\numberline {8.1}Coefficients via Vieta's formula}{13}{subsection.8.1}% 
+\contentsline {subsection}{\numberline {8.2}Sinc Integral}{14}{subsection.8.2}% 
+\contentsline {section}{\numberline {9}Calibration as an optimization problem}{14}{section.9}% 
+\contentsline {subsection}{\numberline {9.1}Objective Function}{14}{subsection.9.1}% 
+\contentsline {section}{\numberline {10}Characteristic function and Gradient Calculation}{15}{section.10}% 
+\contentsline {section}{\numberline {11}Goal}{15}{section.11}% 
+\contentsline {section}{\numberline {12}Body}{16}{section.12}% 
+\contentsline {section}{\numberline {13}Numerical Results}{16}{section.13}% 
+\contentsline {section}{\numberline {14}Bibliography}{16}{section.14}% 
+\contentsline {section}{\numberline {A}Title of the appendix}{18}{appendix.A}% 
+\contentsline {section}{\numberline {B}Title of the appendix}{19}{appendix.B}% 
