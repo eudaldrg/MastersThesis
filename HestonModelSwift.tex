@@ -180,7 +180,21 @@ Recently, there has been both work in fast option pricing numerical techniques u
 
 This work is centered around the calibration of the Heston model for European Options (choosing proper values of the model parameters to minimize the option valuation error) by using a gradient descent method (TODO: name properly) valuating the option and its partial derivatives using the new characteristic function approach in the SWIFT setup.
 
-\section{Previous work}
+\section{Nomenclature}
+
+I will probably not add this section (that's why it doesn't have fancy formatting), but it's good to have everything set recorded somewhere and I might finally decide to polish it up and include this section.
+
+$t$ will refer to the time at which the option is being valuated
+
+$T$ will be the expiration time. Given a time-dependent variable $Var$, $Var_t$ will refer to the value of that variable at time $t$ (respectively with $T$). 
+
+$S, K$ will refer to the underlying and the strike prices respectively.
+
+$\tau := T - t$
+
+$r$ will refer to the risk-free interest rate.
+
+$q$ will refer to the dividend rate.
 
 \section{Option Valuation}
 
@@ -195,12 +209,12 @@ Slight variations of these terms can give rise to other families of options by f
 Other groups of option families are obtained by changing the definition of the option payoff, that is, the amount of money (be it in cash or in the value of the underlying obtained) the option gives on expiration.
 
 \begin{definition} Payoff of a Call European option:
-$$
-v_EC(y, T) = \left\{ \begin{array}{rcl}
+\begin{equation}
+V_{EC}(y, T) = (S_T - K)\boldsymbol{1}_{S_T \geq K} = \left\{ \begin{array}{rcl}
 S_T - K & \mbox{if} & S_T > K \\ 
 0 & \mbox{if} & S_T\leq K
 \end{array}\right.
-$$
+\end{equation} 
 \end{definition}
 
 So, on maturity, a European Call option is only profitable if it allows the holder of the contract to buy the underlying asset at a cheaper price than the current asset spot price. In most models any option has a certain positive value if it's not expired, as the underlying price can always theoretically move enough so that a currently non-profitable option ends up with a positive payoff on expiry. Another 
@@ -219,18 +233,31 @@ Some examples of other families of functions that have different payoffs are Bin
 In order to price an option that expires at some point in the future, one usually first models the temporal evolution of the price of its underlying asset by using some stochastic process. This model will typically be expressed in terms of parameters that will be calibrated to fit the underlying price evolution of each product one wants to valuate.
 % TODO: Some discussion on how the nature of the contract affects the difficulty of pricing it.
 
-\subsection{Risk neutrality}\label{subsec:riskneu}
+\subsection{No arbitrage and risk neutrality assumptions.}
+
 Put-Call parity (that's why we only talk about Calls in this article)
 Model
 Log-Returns
 
 \subsection{European Option Valuation}
-European options only depend on the final price of the underlying asset on the moment of expiration of the contract. Thus, if we model the underlying asset's price with an stochastic process, the discounted expectation (TODO: Explain in \ref{subsec:riskneu}) (under risk neutrality assumptions) of the gain one will obtain by holding the contract can be computed by integrating the density function of the price of the asset at expiry.
-\begin{equation}\label{eq:option_valuation}
+European options payoff only depends on the final price of the underlying asset on the moment of expiration of the contract. Thus, if we model the underlying asset's price evolution with an stochastic process, we can express the stochastic distribution of the payoff, and using risk neutrality, compute the option price as the discounted expectation (TODO: Explain in \ref{subsec:riskneu}) (under risk neutrality assumptions) of the payoff:
+\begin{align} 
+\label{eq:option_valuation_expectation}
+& v(x, \tau) & = e^{-r \tau}\E^{\Q}(v(y, T)|x) & = e^{-r \tau} \E^{Q}((S_T - K)\boldsymbol{1}_{S_T \geq K}) \\  
+\label{eq:option_valuation_useless}
+&  &  & = e^{-r \tau}(\E^{Q}(S_T \boldsymbol{1}_{S_T \geq K}) - K\E^{Q}(\boldsymbol{1}_{S_T \geq K})) \\
+\label{eq:option_valuation_final_form}
+&  &  & = S_t e^{-q \tau} P_1(x, \tau) - K e^{-r \tau} P_2(x, \tau)
+\end{align}
+
+, where v denotes the option value, r the risk-neutral interest rate, $\E^Q$ the expectation under the risk-neutral measure, x and y denote state variables that fully describe the underlying asset process state at times t and T respectively, and $P_1$ and $P_2$ are specific to the model we are using (their expression for the Heston model will be provided in \ref{chap:heston_model}.
+
+The expectation from equation \ref{eq:option_valuation_expectation}
+, can be expressed as the following integral, which can then be approximated numerically:
+
+\begin{equation}\label{eq:integral_option_valuation}
 v(x,t) = e^{-r(T - t)}\E^{\Q}(v(y, T)|x) = e^{-r(t - T)} \int_{\R}v(y,T)f(y|x)dy
 \end{equation}
-
-, where v denotes the option value, r the risk-neutral interest rate, $\E^Q$ the expectation under the risk-neutral measure, and x and y denote state variables that fully describe the underlying asset process state at times t and T respectively.
 
 There is a broad literature in methods to solve this integration problem for basic underlying asset models and some simpler models, as Black and Scholes even have closed solutions (TODO: ref BS formula) but it is common that, for more complex models, the probability function at expiry doesn't have a known expression but it's characteristic function does, so several methods have been developed using numerical integration and the Fourier transform.
 
@@ -261,7 +288,7 @@ Note that any L\'evy process can be completely characterized by the triplet $(a,
 
 \subsection{Underlying Process Modeling}
 
-In option pricing, one can denote by $\{S_t\}_{t=0}^T$ the underlying price process and model it with an exponential L\'evy process. For a given strike $K$, one can consider the log-transformed process $X_t := log(U_t / K)$, which will follow another L\'evy process with an extra drift. Let the state variables be $x := log(S_t / K)$ and $y := log(U_T / K)$. In order to solve equation \ref{eq:option_valuation} one needs to evaluate $f(y|x)$, which is not always available in analytic form, but formula \ref{levy_khin} can be used to obtain the form of its Fourier transform at any strike: 
+In option pricing, one can denote by $\{S_t\}_{t=0}^T$ the underlying price process and model it with an exponential L\'evy process. For a given strike $K$, one can consider the log-transformed process $X_t := log(U_t / K)$, which will follow another L\'evy process with an extra drift. Let the state variables be $x := log(S_t / K)$ and $y := log(U_T / K)$. In order to solve equation \ref{eq:integral_option_valuation} one needs to evaluate $f(y|x)$, which is not always available in analytic form, but formula \ref{levy_khin} can be used to obtain the form of its Fourier transform at any strike: 
 %TODO Make sure the term at the money has been introduced before.
 $$
 \hat{f}(\theta; x) := \E\left[e^{i\theta X_T}\right] = e^{-i\theta x}e^{-i \theta \mu T + T \psi_L(-\theta)} =: e^{-i\theta x}\hat{f}(\theta) 
@@ -289,7 +316,7 @@ GBM   	  &  $-\dfrac{\sigma^2}{2}\omega^2$	& $\sigma > 0$ \\
 \end{tabular}
 \caption{Test}
 \end{table}
-\section{Heston Model}
+\section{Heston Model} \label{chap:heston_model}
 
 The Black and Scholes model discussed in section \ref{sec:bs} fails to capture essential well known properties of the real world market dynamics of the log returns distributions, as its high kurtosis, its negative skew, and the correlation between the underlying price and its volatility.
 
@@ -316,10 +343,19 @@ Several studies have shown the relations between the Heston model parameters and
 \item $\nu_0$ controls the position of the volatility surface.
 \item $\rho$ controls its skewness.
 \item $\kappa$ and $\sigma$ control the convexity of the surface.
-\item $\kappa(\nu_0 - \overline{\nu}$ controls the term structure of implied volatility. %TODO look this up.
+\item $\kappa(\nu_0 - \overline{\nu})$ controls the term structure of implied volatility. %TODO look this up.
 \end{itemize}
 
-Heston also provided an analytic equation to obtain the price of European options in terms of the characteristic function of the stochastic distribution of the underlying asset. Below is its expression for a Call option:
+Heston also provided an expression of the price of an European option. In terms of equation \ref{eq:option_valuation_final_form}, the values of $P_1$ and $P_2$ are:
+
+\begin{equation}
+\begin{aligned}
+&P_{1}(\boldsymbol{\theta} ; K, \tau)=\frac{1}{2}+\frac{1}{\pi} \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{5_{0}}}}{i u} \frac{\phi(\boldsymbol{\theta} ; u-i, \tau)}{\phi(\boldsymbol{\theta} ;-i, \tau)}\right) \mathrm{d} u\\
+&P_{2}(\boldsymbol{\theta} ; K, \tau)=\frac{1}{2}+\frac{1}{\pi} \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{5_{0}}}}{i u} \phi(\boldsymbol{\theta} ; u, \tau)\right) \mathrm{d} u
+\end{aligned}
+\end{equation}
+
+Substituting these values into equation \ref{eq:option_valuation_final_form} , one can obtain an analytic equation to obtain the price of European Call options:
 
 \begin{lem} Heston's pricing method.
 \begin{equation} \label{eq:heston_analytic}
@@ -329,22 +365,23 @@ C(\theta ; K, \tau)=& \frac{1}{2}\left(S_{t} e^{-q \tau}-K e^{-r \tau}\right) \\
 &\left.-K \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{S_0}}}{i u} \phi(\theta ; u, \tau)\right) \mathrm{d} u\right]
 \end{aligned}
 \end{equation}
-. The proposed expression of the characteristic function is
+
+, where $\phi$ is the characteristic function of the process followed by the logarithm of price of the underlying asset. The expression of this characteristic function is
 \begin{equation} \label{eq:char_heston}
 \begin{array}{l}
 \phi(\boldsymbol{\theta} ; u, \tau):=\mathrm{E}\left[\exp \left(i u \log \frac{S_{t}}{S_{0}}\right)\right]=\exp \left\{i u \log \frac{F}{S_{0}}\right. \\
 \left.\quad+\frac{\kappa \bar{v}}{\sigma^{2}}\left[(\xi+d) \tau-2 \log \frac{1-g_{1} e^{d \tau}}{1-g_{1}}\right]+\frac{v_{0}}{\sigma^{2}}(\xi+d) \frac{1-e^{d \tau}}{1-g_{1} e^{d \tau}}\right\}
 \end{array}
 \end{equation}
-, where
+, where $F := S_t e^{(r - q) \tau}$ is the forward price and
 
 \noindent\begin{minipage}{.3\linewidth}
 \begin{equation}
 \xi:=\kappa-\sigma \rho i u
 \end{equation}
 \end{minipage}
-\noindent\begin{minipage}{.3\linewidth}
-\begin{equation}
+\noindent\begin{minipage}{.4\linewidth}
+\begin{equation} \label{eq:char_d}
 d:=\sqrt{\xi^{2}+\sigma^{2}\left(u^{2}+i u\right)}
 \end{equation}
 \end{minipage}
@@ -378,7 +415,54 @@ They are usually used in combination with deterministic search methods, as the N
 These methods are too computationally expensive for real-time use as of now: Fernandez et al. use GPU computations to calibrate options using a SV model called SABR, and it took 421.72 seconds to calibrate 12 instruments with tolerance of $10^{-2}$ using 2 NVIDIA Geforce GTX470 GPUs \cite{fer13}.
 
 \item{\textbf{Deterministic methods:}}
+
 \end{itemize}
+
+\section{Calibration as an optimization problem} \label{chap:optimization_problem}
+The goal of calibrating a model using market data, is to obtain model parameters that, when used for option valuation with an appropriate option valuation method, yield results similar to the real market option prices.
+
+Completely matching the market for all strikes and maturities is an over-determined problem so, generally, the calibration consists on a least squares minimization problem, using a set of option market prices at different strikes and maturities.
+
+In this section, the objective function of the optimization problem used by \cite{cui17} is presented, as it will be the one used in this study.
+
+\subsection{Objective Function}
+Let $C^*(K_i, \tau_i)$ be the market price of a European call option and
+ $C(\boldsymbol{\theta}; K_i, \tau_i)$ be the price at the same strikes and maturities obtained by using the Heston analytic formula \ref{eq:heston_analytic}. Let's also assume that we use n different options to calibrate the model, so 
+ $i \in [1,n] \subset \Z$
+ . Then:
+ \begin{definition} The calibration of the model is defined as the minimization problem $$min_{\boldsymbol{\theta} \in \R^5} (f(\boldsymbol{\theta}))$$ $$f(\boldsymbol{\theta}) := \dfrac{1}{2}||\boldsymbol{r}(\theta)||^2 = \dfrac{1}{2} \boldsymbol{r}^T(\boldsymbol{\theta})\boldsymbol{r}(\boldsymbol{\theta})$$
+\end{definition}
+
+, where $\boldsymbol{r}(\boldsymbol{\theta})$ is the n-dimensional vector of the residuals obtained when pricing the options considered for calibration using the model parameters. That is:
+
+\begin{align}
+\boldsymbol{r}(\boldsymbol{\theta}) := \left[r_1(\boldsymbol{\theta}), \ldots, r_n(\boldsymbol{\theta}) \right]^T, 
+&& r_i(\boldsymbol{\theta}) :=  C(\boldsymbol{\theta}; K_i, \tau_i) - C^*(K_i, \tau_i), && i = 1, \ldots, n
+\end{align}
+
+It is worth noting that the choice of a specific objective function (and appropriate strikes and maturities to use as calibration points) will intimately characterize the model. This can be used when trading to fit to the specific needs of trader, ultimately leading to different objective functions, as relative price differences instead of absolute ones, or log-likelihood based methods \cite{jac00} for, for example, hedging and market making \cite{chr02}. 
+
+One must be cautious, as this choice can lead to consistently giving more weight in the calibration to some set of options over the others. For example, according to \cite{cui17}, a commonly used minimization problem in industry for calibration consists on a least-squares problem similar to the one used in this study, using squared differences of the implied BS volatility of each calibration option, which can lead to giving more weight to OTM options in comparison with ITM ones.
+
+The choice of calibration strikes and maturities can also have a similar impact in the pricing model. For example, as an option gets closer to the expiration date, the variance of the price change until expiration of the underlying asset gets smaller. So, if one were to always use the same strikes across different expiries, then for long-term maturities the model would end up with a lot of calibration points ATM but would lack control points in regions where the density function of the underlying asset is still relevant, which could lead to serious pricing errors for mildly OTM and ITM options. For the short-term maturities, the relevant regions of the density function would have small number of sparse strikes and there would be a lot of strikes in very OTM and ITM regions, where prices are mostly close to 0 and to the discounted payout respectively, so they are less sensitive to the change in the model parameters and do not help much in calibration (the price derivatives with respect to the model parameters will be almost flat at those expiry-maturity points, so they will not affect much the optimization problem), effectively wasting computational power.
+
+As this study does not strive for any specific trading strategy, the choice of TODO: finish this and mention that the calibration objective function should be the same as the one used when valuating the model performance \cite{chr02}
+
+%% Anava per aqui1
+
+\section{Characteristic function and Gradient Calculation} \label{sec:gradient}
+
+For long-term maturities (i.e. big values of $\tau$), Kahl and J\"{a}ckel show that the characteristic  \ref{eq:char_heston} has discontinuities as $u$ increases \cite{kah05}, which can lead to numerical problems for many option valuation methods based on the integral expression \ref{eq:integral_option_valuation}. They show that this discontinuities arise because of a term in equation \ref{eq:char_heston} of the form $G^\alpha(u) := e^{\alpha log G(u)}$ with $G(u) := \dfrac{1 - g_1 e^{d\tau}}{1 - g_1}$ and $\alpha := \dfrac{\kappa \overline{\vega}}{\sigma^2}$, for non-integer values of $\alpha$. This is due to the spiral shape of $G(u)$ which produces a phase jump on $log(G(u))$ each time $G(u)$ crosses the negative side of the real line. This only happens if $d$ is defined taking the principal value of the square root that appears in its expression (see equation \ref{eq:char_d}) and the discontinuity can be avoided if the second value is used \cite{alb07}.
+
+
+%% Anava per aqui2
+
+$\quad A:=\frac{A_{1}}{A_{2}}$
+$\quad A_{1}:=\left(u^{2}+i u\right) \sinh \frac{d \tau}{2}$
+$\quad A_{2}:=\frac{d}{v_{0}} \cosh \frac{d \tau}{2}+\frac{\xi}{v_{0}} \sinh \frac{d \tau}{2}$
+\begin{equation}
+B:=\dfrac{de^{\kappa \tau / 2}}{v_0A_2}
+\end{equation}
 
 \section{Multi Resolution Analysis and Shannon Wavelets}
 
@@ -470,7 +554,7 @@ $$
 
 \section{SWIFT}
 
-Given a certain stochastic model for the underlying log returns price evolution over time and its density function f (equation \ref{eq:option_valuation}) chosen to valuate the options and its correspondent characteristic function $\hat{f}(w) = \int_{\R} e^{-iwx} f(x) dx$, Shannon Wavelets Inverse Fourier Technique combines Shannon Wavelets and $\hat{f}$ to truncate f at a fixed approximation level m and provide a fast way to obtain the Fourier coefficients and recover the time domain ones through fast Fourier transform. (TODO: Cite)
+Given a certain stochastic model for the underlying log returns price evolution over time and its density function f (equation \ref{eq:integral_option_valuation}) chosen to valuate the options and its correspondent characteristic function $\hat{f}(w) = \int_{\R} e^{-iwx} f(x) dx$, Shannon Wavelets Inverse Fourier Technique combines Shannon Wavelets and $\hat{f}$ to truncate f at a fixed approximation level m and provide a fast way to obtain the Fourier coefficients and recover the time domain ones through fast Fourier transform. (TODO: Cite)
 
 \subsection{Coefficients via Vieta's formula}
 $$
@@ -481,70 +565,34 @@ $$
 SWIFT works with the cardinal sinc function and it needs to evaluate it's integral $Si(t) = \int_0^t{sinc(x) dx}$ for which there's no closed form. This problem was addressed in \cite{abr15_1, abr15_2} by using a combination of Vieta's formula and a cosine product-to-sum identity, resulting in an approximation by an incomplete cosine expansion
 
 
-\section{Calibration as an optimization problem} \label{chap:optimization_problem}
-The goal of calibrating a model using market data, is to obtain model parameters that, when used for option valuation with an appropriate option valuation method, yield results similar to the real market option prices.
+\section{Formulation of the study}
 
-Completely matching the market for all strikes and maturities is an over-determined problem so, generally, the calibration consists on a least squares minimization problem, using a set of option market prices at different strikes and maturities.
+In this study a Heston model will be calibrated with a a Levenberg–Marquardt method with the objective function defined in \ref{eq:objective_function}. The calibration points will be obtained from real marked data and will be taken at expiries (TODO: add expiries when they are decided) to take into account both short-term and long-term maturities. The strikes will be taken at 0\%, $\pm 25 \% $, and $\pm 50 \%$ BS delta, as recommended in section \ref{sec:optimization_problem}.
 
-In this section, the objective function of the optimization problem used by \cite{cui17} is presented, as it will be the one used in this study.
+The option valuation will be done with a SWIFT method, using the expression for the characteristic function and it's derivatives provided in \cite{cui17}. These derivatives are taken from an exact expression of the option price. In order for the difference between the real derivatives and the derivatives of the Shannon Wavelet approximation to be small, the approximation error will be restricted accordingly.
 
-\subsection{Objective Function}
-Let $C^*(K_i, \tau_i)$ be the market price of a European call option and
- $C(\boldsymbol{\theta}; K_i, \tau_i)$ be the price at the same strikes and maturities obtained by using the Heston analytic formula \ref{eq:heston_analytic}. Let's also assume that we use n different options to calibrate the model, so 
- $i \in [1,n] \subset \Z$
- . Then:
- \begin{definition} The calibration of the model is defined as the minimization problem $$min_{\boldsymbol{\theta} \in \R^5} (f(\boldsymbol{\theta}))$$ $$f(\boldsymbol{\theta}) := \dfrac{1}{2}||\boldsymbol{r}(\theta)||^2 = \dfrac{1}{2} \boldsymbol{r}^T(\boldsymbol{\theta})\boldsymbol{r}(\boldsymbol{\theta})$$
-\end{definition}
+\subsection{Robustness tests}
+There is no guarantee the objective function of the calibration problem is convex, so local minima problems can arise so, in order to both validate the robustness of the method proposed and assert its region of attraction, several convergence tests will be run.
 
-, where $\boldsymbol{r}(\boldsymbol{\theta})$ is the n-dimensional vector of the residuals obtained when pricing the options considered for calibration using the model parameters. That is:
+Consider a set of initial parameter configurations $\{\boldsymbol{\theta}^*\}$. Given an initial parameter vector $\boldsymbol{\theta}_{i}^*$ its correspondent call option prices will be computed at the control points $C(K_j, \tau_j)$. Then, random perturbations will be applied to each initial parameters vector to obtain a set of transformed parameters
+$\{\boldsymbol{\theta}_i\}$. The proposed calibration methodology will then be applied to these parameters and the convergence region will be studied.
 
-\begin{align}
-\boldsymbol{r}(\boldsymbol{\theta}) := \left[r_1(\boldsymbol{\theta}), \ldots, r_n(\boldsymbol{\theta}) \right]^T, 
-&& r_i(\boldsymbol{\theta}) :=  C(\boldsymbol{\theta}; K_i, \tau_i) - C^*(K_i, \tau_i), && i = 1, \ldots, n
-\end{align}
+\subsection{Speed tests}
+The SWIFT approach should drastically speed up the computation time with respect to the original option valuation method used in the study of Cui et al. \cite{cui17}. In order to quantify this speed improvement several sets of Heston model parameters and market parameters (at both long and short term expiries and OTM and ITM options, to provide an heterogeneous sample of contracts) will be generated. For these inputs, the price of their correspondent option price will be computed using both the swift method and a simple quadrature numerical integration as in \cite{cui17}.
 
-It is worth noting that the choice of a specific objective function (and appropriate strikes and maturities to use as calibration points) will intimately characterize the model. This can be used when trading to fit to the specific needs of trader, ultimately leading to different objective functions, as relative price differences instead of absolute ones, or log-likelihood based methods \cite{jac00} for, for example, hedging and market making \cite{chr02}. 
+\subsection{Fit tests}
+The Heston model should capture the market dynamics like skewness and high-kurtosis better than other simpler models like Black and Scholes. Comparing directly the goodness-of-fit of a Heston model and a BS one should show the clear dominance of the first one, but this could be dominated by the fact that BS has only 1 model parameter while Heston has 5.
 
-One must be cautious, as this choice can lead to consistently giving more weight in the calibration to some set of options over the others. For example, according to \cite{cui17}, a commonly used minimization problem in industry for calibration consists on a least-squares problem similar to the one used in this study, using squared differences of the implied BS volatility of each calibration option, which can lead to giving more weight to OTM options in comparison with ITM ones.
+This simple test above will be run, but it is of more interest to also compare the performance of a hibrid BS model, where the BS volatilities are computed at specific control points and the whole theoretic volatility smile is computed from them. To render both BS and Heston comparable, 5 BS volatility smile cutoff points will be chosen. These will be chosen for the same expiry (in hopes that the BS cutoff points can cover enough of the volatility smile). For this scenario, several Heston calibration points will be chosen and both models will be calibrated using the same minimum squares optimization problem and Levenberg–Marquardt method.
 
-The choice of calibration strikes and maturities can also have a similar impact in the pricing model. For example, as an option gets closer to the expiration date, the variance of the price change until expiration of the underlying asset gets smaller. So, if one were to always use the same strikes across different expiries, then for long-term maturities the model would end up with a lot of calibration points ATM but would lack control points in regions where the density function of the underlying asset is still relevant, which could lead to serious pricing errors for mildly OTM and ITM options. For the short-term maturities, the relevant regions of the density function would have small number of sparse strikes and there would be a lot of strikes in very OTM and ITM regions, where prices are mostly close to 0 and to the discounted payout respectively, so they are less sensitive to the change in the model parameters and do not help much in calibration (the price derivatives with respect to the model parameters will be almost flat at those expiry-maturity points, so they will not affect much the optimization problem), effectively wasting computational power.
+Christoffersen and Jacobs \cite{chr02} show the importance of using the same objective function for both model calibration and goodness-of-fit tests, and to use the same one across the different models we want to compare. If, instead, the vanilla BS model was calibrated by using a volatility based method, one could reduce the fitness over the evaluation objective function.
 
-As this study does not strive for any specific trading strategy, the choice of TODO: finish this and mention that the calibration objective function should be the same as the one used when valuating the model performance \cite{chr02}
-
-%% Anava per aqui
-
-\section{Characteristic function and Gradient Calculation}
-
-Equation \ref{eq:char_heston}
-
-$\quad A:=\frac{A_{1}}{A_{2}}$
-$\quad A_{1}:=\left(u^{2}+i u\right) \sinh \frac{d \tau}{2}$
-$\quad A_{2}:=\frac{d}{v_{0}} \cosh \frac{d \tau}{2}+\frac{\xi}{v_{0}} \sinh \frac{d \tau}{2}$
-\begin{equation}
-B:=\dfrac{de^{\kappa \tau / 2}}{v_0A_2}
-\end{equation}
-
-\section{Goal}
-
-First draft, to be improved
-
-In this study:
-
-The model is calibrated by using a gradient descent method as in \cite{cui17}, even though there is no guarantee the function is convex, so we might hit a local minimum. 
-
-We will start from a set of parameters to price several options and we will try to recover the initial parameters after adding some random noise to the obtained prices.
-
-Then we will use real market data and we will calibrate the model starting from several different initial guesses and check whether we obtain the same result.
-
+\subsection{General minimum}
 Finally we will compare the results with the results obtained from a derivative-free optimization scheme that, even if slower, will avoid local minimums if repeated enough times.
-
-%TODO improve this when done
-
-\section{Body}
 
 \section{Numerical Results}
 
-\chapter{Conclusions}
+\section{Conclusions}
 
 \section{Bibliography}
 
@@ -557,7 +605,5 @@ Finally we will compare the results with the results obtained from a derivative-
 \appendix
 \vfill\newpage \section{Title of the appendix}
 You can include here an appendix with details that can not be included in the core of the document. You should reference the sections in this appendix in the core document.
-\vfill\newpage \section{Title of the appendix}
-Second appendix.
 
 \end{document}
