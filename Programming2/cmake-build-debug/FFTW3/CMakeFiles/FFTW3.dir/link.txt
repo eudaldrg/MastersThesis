@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../build_x64/Debug/lib/libFFTW3.a  
-/usr/bin/ranlib ../../build_x64/Debug/lib/libFFTW3.a
