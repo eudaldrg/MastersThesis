@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="X_UT_SWIFT"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\FFTW3\;CMake Files\FFTW3\UnitTests\;CMake Files\SWIFT\;CMake Files\SWIFT\UnitTests\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\usr\local\Qt\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Core\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Charts\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Widgets\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5PrintSupport\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\;CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Network\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="X_UT_SWIFT">
+				<Option output="/home/eudald/Projects/MastersThesis/Programming2/build_x64/Test/bin/X_UT_SWIFT" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_BOOST"/>
+					<Add directory="/home/eudald/Projects/MastersThesis/Programming2"/>
+					<Add directory="/usr/local/lib/R/site-library/Rcpp/include"/>
+					<Add directory="/usr/share/R/include"/>
+					<Add directory="/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test"/>
+					<Add directory="/usr/local/boost_1_68_g++_8.1.0/include"/>
+					<Add directory="/usr/include/c++/8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/8"/>
+					<Add directory="/usr/include/c++/8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 X_UT_SWIFT"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="X_UT_SWIFT/fast">
+				<Option output="/home/eudald/Projects/MastersThesis/Programming2/build_x64/Test/bin/X_UT_SWIFT" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_BOOST"/>
+					<Add directory="/home/eudald/Projects/MastersThesis/Programming2"/>
+					<Add directory="/usr/local/lib/R/site-library/Rcpp/include"/>
+					<Add directory="/usr/share/R/include"/>
+					<Add directory="/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test"/>
+					<Add directory="/usr/local/boost_1_68_g++_8.1.0/include"/>
+					<Add directory="/usr/include/c++/8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/8"/>
+					<Add directory="/usr/include/c++/8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 X_UT_SWIFT/fast"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/eudald/Projects/MastersThesis/Programming2/cmake-build-test/SWIFT/UnitTests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/SWIFT/UnitTests/distributions.cpp">
+			<Option target="X_UT_SWIFT"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/SWIFT/UnitTests/main.cpp">
+			<Option target="X_UT_SWIFT"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/SWIFT/UnitTests/my_math.cpp">
+			<Option target="X_UT_SWIFT"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/SWIFT/UnitTests/option_pricing.cpp">
+			<Option target="X_UT_SWIFT"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/SWIFT/UnitTests/swift.cpp">
+			<Option target="X_UT_SWIFT"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/FFTW3/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\FFTW3\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/FFTW3/UnitTests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\FFTW3\UnitTests\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/SWIFT/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\SWIFT\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/SWIFT/UnitTests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\SWIFT\UnitTests\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5/Qt5Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5/Qt5ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Core/Qt5CoreConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Core/Qt5CoreConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Core/Qt5CoreConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Core/Qt5CoreMacros.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Charts/Qt5ChartsConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Charts\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Charts/Qt5ChartsConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Charts\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Widgets/Qt5WidgetsConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Widgets/Qt5WidgetsConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Widgets/Qt5WidgetsConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Widgets/Qt5WidgetsMacros.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5GuiConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5GuiConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5GuiConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QComposePlatformInputContextPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QDDSPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEglFSIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEglFSX11IntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEvdevKeyboardPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEvdevMousePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEvdevTabletPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEvdevTouchScreenPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QGifPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QICNSPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QICOPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QIbusPlatformInputContextPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QJp2Plugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QJpegPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QLinuxFbIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QMinimalEglIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QMinimalIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QOffscreenIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QTgaPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QTiffPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QTuioTouchPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWbmpPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWebpPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QXcbEglIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QXcbGlxIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QXcbIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5PrintSupport/Qt5PrintSupportConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5PrintSupport\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5PrintSupport/Qt5PrintSupportConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5PrintSupport\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5PrintSupport/Qt5PrintSupport_QCupsPrinterSupportPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5PrintSupport\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5MultimediaConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5MultimediaConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5Multimedia_CameraBinServicePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5Multimedia_QAlsaPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5Multimedia_QGstreamerAudioDecoderServicePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5Multimedia_QGstreamerCaptureServicePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5Multimedia_QGstreamerPlayerServicePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5Multimedia_QM3uPlaylistPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Multimedia/Qt5Multimedia_QPulseAudioPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Multimedia\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Network/Qt5NetworkConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Network/Qt5NetworkConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Network/Qt5Network_QConnmanEnginePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Network/Qt5Network_QGenericEnginePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="/home/eudald/Projects/MastersThesis/Programming2/../../../../../usr/local/Qt/5.7/gcc_64/lib/cmake/Qt5Network/Qt5Network_QNetworkManagerEnginePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\Qt\5.7\gcc_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

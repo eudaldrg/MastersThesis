@@ -1,0 +1,12 @@
+/home/eudald/Downloads/clion-2018.3.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Test -G "CodeBlocks - Unix Makefiles" /home/eudald/Projects/MastersThesis/Programming2
+Running in CLion
+Setting up mode Test for branch master with version master and compiler gcc with C++17
+Ignoring Clang flags for terminal
+Found boost at /usr/local/boost_1_68_g++_8.1.0/lib
+FFTW3
+X_UT_FFTW3
+SWIFT
+X_UT_SWIFT
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/eudald/Projects/MastersThesis/Programming2/cmake-build-test
