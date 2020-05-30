@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(SIApproxTes)
     };
 
     for (auto const& [x, exact] : test_results)
-        BOOST_CHECK_CLOSE(Swift::sgn(x) * Swift::SIApprox(std::abs(x), j_bar), exact, Swift::MATH_EPSILON);
+        BOOST_CHECK_CLOSE(Sign(x) * SIApprox(std::abs(x), j_bar), exact, MATH_EPSILON);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

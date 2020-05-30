@@ -9,9 +9,11 @@ project(${PROJECT_NAME})
 
 set(SOURCES
         distributions.h
+        option_contracts.cpp
+        option_contracts.h
         swift.h
         my_math.h
-    )
+        known_distribution_contract_combinations.h c_m_calculators.cpp c_m_calculators.h swift.cpp)
 
 # For any nested file, replace "/" by  "\"
 foreach(source ${SOURCES})

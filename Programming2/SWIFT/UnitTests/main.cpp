@@ -8,6 +8,7 @@ using namespace boost::unit_test;
 struct Init {
     Init()
     {
+        boost::unit_test::unit_test_log.set_threshold_level( boost::unit_test::log_messages);
 //        if (framework::master_test_suite().argc == 2 && std::string(framework::master_test_suite().argv[1]) == "--suppress_xan_logs")
 //            LogNS::SetDefaultLogL(LogL::UnusedLevel);
 //        else if(  runtime_config::get<log_level>(runtime_config::btrt_log_level) <= log_messages )

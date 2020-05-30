@@ -5,9 +5,8 @@
 #include <cmath>
 #include <iterator>
 
-namespace Swift {
 using namespace std::complex_literals;
-const double PI = boost::math::constants::pi<double>();
+const double MY_PI = boost::math::constants::pi<double>();
 const double MATH_EPSILON = 1e-5;
 
 /// \param [in] x: positive integer to reverse.
@@ -25,13 +24,31 @@ inline unsigned int bitReverse(std::size_t x, std::size_t log2n) {
     return n;
 }
 
-template <typename T> int sgn(T val) {
+template <typename Func>
+double TrapezoidInt(double a, double b, Func f, std::size_t N = 50)
+{
+    double step = 1.0 / N;
+    double result = 0.5 * (f(a) + f(b));
+    for (std::size_t i = 1; i < N; ++i)
+        result += f(a + i * step);
+    result *= step;
+    return result;
+}
+
+template <typename T> int Sign(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
 inline bool IsZero(double val, double tol = MATH_EPSILON)
 {
     return std::abs(val) <= tol;
+}
+
+template <typename T>
+T Mod(T a, T b)
+{
+    T r = a % b;
+    return r >= 0 ? r : r + std::abs(b);
 }
 
 inline bool IsSame(double lhs, double rhs, double abs_tol = MATH_EPSILON, double rel_tol = MATH_EPSILON)
@@ -43,6 +60,7 @@ inline bool IsSame(double lhs, double rhs, double abs_tol = MATH_EPSILON, double
     return std::abs((lhs - rhs) / rhs) <= rel_tol;
 }
 
+/// X = DFT(x) <=> X_k = Sum_{n = 1}^{N}(x_n * e^(-2 * i * PI * k * n / N))
 inline std::vector<std::complex<double>> DFT(std::vector<std::complex<double>> const& x)
 {
     std::size_t N = x.size();
@@ -51,13 +69,14 @@ inline std::vector<std::complex<double>> DFT(std::vector<std::complex<double>> c
     {
         std::complex<double> current_transform{0.0,0.0};
         for (std::size_t n = 0; n < N; ++n)
-            current_transform += x[n] * std::exp(-1i * 2.0 * PI / static_cast<double>(N) * static_cast<double>(k) * static_cast<double>(n));
+            current_transform += x[n] * std::exp(-1i * 2.0 * MY_PI / static_cast<double>(N) * static_cast<double>(k) * static_cast<double>(n));
         X.push_back(current_transform);
     }
     return X;
 }
 
-inline std::vector<std::complex<double>> IDFT(std::vector<std::complex<double>> const& X)
+/// x = IDFT(X) <=> x_n = 1/N * Sum_{k = 1}^{N}(x_n * e^(2 * i * PI * k * n / N))
+inline std::vector<std::complex<double>> IDFT(std::vector<std::complex<double>> const& X, bool normalized = true)
 {
     std::size_t N = X.size();
     std::vector<std::complex<double>> x;
@@ -65,8 +84,10 @@ inline std::vector<std::complex<double>> IDFT(std::vector<std::complex<double>> 
     {
         std::complex<double> current_transform{0.0,0.0};
         for (std::size_t k = 0; k < N; ++k)
-            current_transform += X[k] * std::exp(1i * 2.0 * PI / static_cast<double>(N) * static_cast<double>(k) * static_cast<double>(n));
-        x.push_back(current_transform / static_cast<double>(N));
+            current_transform += X[k] * std::exp(1i * 2.0 * MY_PI / static_cast<double>(N) * static_cast<double>(k) * static_cast<double>(n));
+        if (normalized)
+            current_transform /= N;
+        x.push_back(current_transform);
     }
     return x;
 }
@@ -85,7 +106,7 @@ inline void fft(std::vector<std::complex<double>>& a, bool invert) {
     fft(a0, invert);
     fft(a1, invert);
 
-    double ang = 2 * PI / n * (invert ? -1 : 1);
+    double ang = 2 * MY_PI / n * (invert ? -1 : 1);
     std::complex<double> w(1), wn(cos(ang), sin(ang));
     for (int i = 0; 2 * i < n; i++) {
         a[i] = a0[i] + w * a1[i];
@@ -109,7 +130,7 @@ inline std::vector<std::complex<double>> FFT(std::vector<std::complex<double>> a
         std::size_t m = 1U << s;
         std::size_t m2 = m >> 1U;
         std::complex<double> w(1, 0);
-        std::complex<double> wm = exp(-PI * 1i / static_cast<double>(m2));
+        std::complex<double> wm = exp(-MY_PI * 1i / static_cast<double>(m2));
         for (std::size_t j = 0; j < m2; ++j) {
             for (std::size_t k = j; k < n; k += m) {
                 std::complex<double> t = w * b[k + m2];
@@ -122,4 +143,22 @@ inline std::vector<std::complex<double>> FFT(std::vector<std::complex<double>> a
     }
     return b;
 }
+
+inline double Sinc(double x)
+{
+    return std::sin(MY_PI * x) / (MY_PI * x);
+}
+
+/// 2 / pi * (sum_{j=1}^{2^{J-1}} sin(pi * x * (2j - 1) / 2^J) / (2j - 1)
+inline double SIApprox(double x, std::size_t J_bar)
+{
+    const uint64_t exp_2_J_minus_1 = 1UL << (J_bar - 1);
+    const uint64_t exp_2_J = exp_2_J_minus_1 * 2;
+    double result = 0.0;
+    for (std::size_t j = 1; j <= exp_2_J_minus_1; ++j)
+    {
+        std::size_t two_j_minus_1 = 2 * j - 1;
+        result += std::sin(two_j_minus_1 * MY_PI * x / exp_2_J) / two_j_minus_1;
+    }
+    return result * 2 / MY_PI;
 }

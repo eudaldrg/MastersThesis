@@ -8,5 +8,5 @@ if (CMAKE_BUILD_TYPE MATCHES Test)
 
     file(GLOB_RECURSE SOURCES *.cpp *.h *.ipp)
     add_executable(${PROJECT_NAME} ${SOURCES})
-    target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT ${BOOST_STATIC_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT FFTW3 ${BOOST_STATIC_LIBRARIES})
 endif()
