@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.2)
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
 string(REPLACE " " "_" ProjectId ${PROJECT_NAME})
 
+message(${PROJECT_NAME})
 project(${PROJECT_NAME})
 
 file(GLOB_RECURSE SOURCES *.cpp *.h *.ipp)

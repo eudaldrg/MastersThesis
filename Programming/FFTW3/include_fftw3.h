@@ -1,8 +1,3 @@
-//
-// Created by eudald on 5/6/20.
-//
+#pragma once
 
-#ifndef MASTERSTHESIS_INCLUDE_FFTW3_H
-#define MASTERSTHESIS_INCLUDE_FFTW3_H
-
-#endif //MASTERSTHESIS_INCLUDE_FFTW3_H
+#include "fftw3.h"
