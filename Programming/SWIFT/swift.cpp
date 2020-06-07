@@ -66,4 +66,23 @@ double SwiftEvaluator::GetPrice(double F, double K, double r, double q) const
     return option_price * std::exp(-r * m_distribution.m_T);
 }
 
+std::vector<double> SwiftEvaluator::GetGradient(double F, double K, double r, double q) const
+{
+    double x = Distribution::GetXCompression(F, K, r, q, m_distribution.m_T);
+
+    FastVietaCalculator fast_vieta_calculator(m_distribution, m_params);
+    std::vector<std::vector<double>> c_m = fast_vieta_calculator.GetGradientCMCoefs(x);
+
+    std::vector<double> option_gradient(m_distribution.GetNumberOfParameters(), 0.0);
+    for (int k = m_params.m_k1; k <= m_params.m_k2; ++k)
+    {
+        double payoff = m_option_contract.GetPayoff(K, m_params.m_m, k, m_params.m_k1, m_params.m_k2, m_params.m_iota_payoff_coefs, true);
+        for (std::size_t param = 0; param < m_distribution.GetNumberOfParameters(); ++param)
+            option_gradient[param] += c_m[k - m_params.m_k1][param] * payoff;
+    }
+    for (std::size_t param = 0; param < m_distribution.GetNumberOfParameters(); ++param)
+        option_gradient[param] *= std::exp(-r * m_distribution.m_T); // TODO: Add q or remove altogether.
+    return option_gradient;
+}
+
 }

@@ -47,8 +47,8 @@ public:
 
     GaussLegendreIntegrator(GaussLegendreMode mode = GaussLegendreMode::Fast);
 
-    template <typename Function>
-    double GetIntegral(Function const& F, double from, double to) const
+    template <typename Function, typename Values>
+    Values GetIntegral(Function const& F, double from, double to, Values initial_values) const
     {
         // Gauss-Legendre defines the quadrature points in the interval [-1, 1], so any integration over [from, to] needs a change of variables
         // Int_from^to (F(x) dx) becomes Q * Int_-1^1 (F(P + Q * t) dt)
@@ -59,14 +59,14 @@ public:
         NumGrids = (NumGrids + 1UL) >> 1UL;
 
         // Computable variables.
-        double quadrature_value = 0.0;
         for (std::size_t current_grid = 0; current_grid < NumGrids; current_grid++) {
             // Each u has two associated points with weight w: +-u.
             double quadrature_point_1 = P + Q * m_u[current_grid];
             double quadrature_point_2 = P - Q * m_u[current_grid];
-            quadrature_value += m_w[current_grid] * (F(quadrature_point_1) + F(quadrature_point_2));
+            initial_values += m_w[current_grid] * (F(quadrature_point_2) + F(quadrature_point_1));
         }
-        return Q * quadrature_value;
+        initial_values *= Q;
+        return initial_values;
     }
 
     std::vector<double> const& m_u; // nodes

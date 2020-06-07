@@ -10,6 +10,17 @@ namespace Swift {
 CMCalculator::CMCalculator(Distribution const& distribution, SwiftParameters const& params) : m_distribution(distribution), m_params(params)
 { }
 
+ParsevalCalculator::ParsevalCalculator(Distribution const& distribution, SwiftParameters const& params, std::size_t integral_buckets)
+    : CMCalculator(distribution, params), m_integral_buckets(integral_buckets)
+{ }
+
+
+
+std::vector<std::vector<double>> ParsevalCalculator::GetGradientCMCoefs(double /*x*/) const
+{
+    throw std::runtime_error("Not implemented.");
+}
+
 std::vector<double> ParsevalCalculator::GetCMCoefs(double x) const
 {
     std::vector<double> c_m;
@@ -26,9 +37,34 @@ std::vector<double> ParsevalCalculator::GetCMCoefs(double x) const
     return c_m;
 }
 
-ParsevalCalculator::ParsevalCalculator(Distribution const& distribution, SwiftParameters const& params, std::size_t integral_buckets)
-: CMCalculator(distribution, params), m_integral_buckets(integral_buckets)
-{ }
+std::vector<std::vector<double>> ExplicitVietaCalculator::GetGradientCMCoefs(double x) const
+{
+    const std::size_t N = 1UL << m_params.m_iota_dens_coefs;
+    const std::size_t two_to_the_m = 1UL << m_params.m_m;
+    const std::size_t two_to_the_j_minus_1 = std::pow(2.0, (m_params.m_iota_dens_coefs - 1));
+
+    std::vector<std::vector<double>> c_m;
+    c_m.reserve(m_params.m_k2 - m_params.m_k1);
+    for (int k = m_params.m_k1; k <= m_params.m_k2; ++k)
+    {
+        std::vector<double> c_m_k(m_distribution.GetNumberOfParameters(), 0);
+        for (std::size_t i = 1; i <= two_to_the_j_minus_1; ++i)
+        {
+            double u = (2 * i - 1) * MY_PI * two_to_the_m / N;
+
+            std::vector<std::complex<double>> f_hat = m_distribution.GetCharGradient(u, x);
+            for (std::size_t param = 0; param < m_distribution.GetNumberOfParameters(); ++param)
+            {
+                f_hat[param] *= std::exp(1i * static_cast<double>(k) * MY_PI * (2.0 * i - 1.0) / static_cast<double>(N));
+                c_m_k[param] += f_hat[param].real();
+            }
+        }
+        for (std::size_t param = 0; param < m_distribution.GetNumberOfParameters(); ++param)
+            c_m_k[param] *= std::sqrt(two_to_the_m) / two_to_the_j_minus_1;
+        c_m.push_back(c_m_k);
+    }
+    return c_m;
+}
 
 std::vector<double> ExplicitVietaCalculator::GetCMCoefs(double x) const
 {
@@ -57,6 +93,42 @@ std::vector<double> ExplicitVietaCalculator::GetCMCoefs(double x) const
 ExplicitVietaCalculator::ExplicitVietaCalculator(Distribution const& distribution, SwiftParameters const& params) : CMCalculator(distribution, params)
 { }
 
+std::vector<std::vector<double>> FastVietaCalculator::GetGradientCMCoefs(double x) const
+{
+    const std::size_t N = 1UL << m_params.m_iota_dens_coefs;
+    const std::size_t two_to_the_m = 1UL << m_params.m_m;
+    const std::size_t two_to_the_j_minus_1 = std::pow(2.0, (m_params.m_iota_dens_coefs - 1));
+
+    std::vector<std::vector<double>> c_m;
+    std::vector<std::vector<std::complex<double>>> frequencies(m_distribution.GetNumberOfParameters(), std::vector<std::complex<double>>{});
+
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        std::vector<std::complex<double>> values_to_push = i < N / 2 ?
+            m_distribution.GetCharGradient((2.0 * i + 1.0) * MY_PI * static_cast<double>(two_to_the_m) / static_cast<double>(N), x)
+            :
+            std::vector<std::complex<double>>(m_distribution.GetNumberOfParameters(), {0.0, 0.0});
+        for (std::size_t param = 0; param < m_distribution.GetNumberOfParameters(); ++param)
+            frequencies[param].push_back(values_to_push[param]);
+    }
+    std::vector<std::vector<std::complex<double>>> times;
+    for (std::size_t param = 0; param < m_distribution.GetNumberOfParameters(); ++param)
+        times.push_back(MY_IDFT(frequencies[param]));
+
+    for (int k = m_params.m_k1; k <= m_params.m_k2; ++k)
+    {
+        std::size_t k_mod_N = Mod(k, static_cast<int>(N));
+        std::vector<double> c_m_k(m_distribution.GetNumberOfParameters(), 0);
+        c_m.emplace_back(std::vector<double>{});
+        for (std::size_t param = 0; param < m_distribution.GetNumberOfParameters(); ++param)
+        {
+            std::complex<double> c_m_k_complex_part_dft = std::exp(1i * static_cast<double>(k) * MY_PI / static_cast<double>(N)) * times[k_mod_N][param];
+            c_m.back().push_back(c_m_k_complex_part_dft.real() * std::sqrt(two_to_the_m) / two_to_the_j_minus_1);
+        }
+    }
+    return c_m;
+}
+
 std::vector<double> FastVietaCalculator::GetCMCoefs(double x) const
 {
     std::size_t N = 1UL << m_params.m_iota_dens_coefs;
@@ -70,7 +142,7 @@ std::vector<double> FastVietaCalculator::GetCMCoefs(double x) const
     for (std::size_t i = 0; i < N; ++i)
     {
         if (i < N / 2)
-            frequencies.push_back(m_distribution.GetChar(static_cast<double>(2 * i + 1) * MY_PI * two_to_the_m / N, x));
+            frequencies.push_back(m_distribution.GetChar((2.0 * i + 1.0) * MY_PI * static_cast<double>(two_to_the_m) / static_cast<double>(N), x));
         else
             frequencies.emplace_back(0, 0);
     }

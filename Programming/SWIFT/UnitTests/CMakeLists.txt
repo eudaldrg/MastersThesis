@@ -7,6 +7,6 @@ if (CMAKE_BUILD_TYPE MATCHES Test)
     project(${PROJECT_NAME})
 
     file(GLOB_RECURSE SOURCES *.cpp *.h *.ipp)
-    add_executable(${PROJECT_NAME} ${SOURCES})
+    add_executable(${PROJECT_NAME} ${SOURCES} contract_distribution_jacobians.cpp)
     target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT FFTW3 ${BOOST_STATIC_LIBRARIES})
 endif()

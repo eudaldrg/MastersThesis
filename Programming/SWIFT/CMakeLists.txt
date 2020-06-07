@@ -15,7 +15,7 @@ set(SOURCES
         swift.h
         my_math.cpp
         my_math.h
-        known_distribution_contract_combinations.h c_m_calculators.cpp c_m_calculators.h swift.cpp)
+        known_distribution_contract_combinations.h c_m_calculators.cpp c_m_calculators.h swift.cpp distributions.cpp)
 
 # For any nested file, replace "/" by  "\"
 foreach(source ${SOURCES})

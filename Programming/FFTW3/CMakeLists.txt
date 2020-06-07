@@ -9,7 +9,7 @@ project(${PROJECT_NAME})
 
 set(SOURCES
         include_fftw3.h
-        )
+    )
 
 # For any nested file, replace "/" by  "\"
 foreach(source ${SOURCES})

@@ -231,8 +231,8 @@ void GetHestonPrice(double *p, double *x, int /*m*/, int n_observations, MarketP
 
 // integrands for Jacobian
 struct tagMNJac{
-    double pa1s;
-    double pa2s;
+    double partial_kappa_1s;
+    double partial_kappa_2s;
 
     double pb1s;
     double pb2s;
@@ -249,8 +249,8 @@ struct tagMNJac{
 
 
 // return integrands (real-valued) for Jacobian
-tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
-    double v0, double K, double T, double S, double r)
+tagMNJac GetHestonJacobianIntegrands(double u, double a, double b, double c, double rho,
+                                     double v0, double K, double T, double S, double r)
 {
     tagMNJac Jacobian;
 
@@ -480,8 +480,8 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> hN1 = h_N*y1N1;
     complex<double> hN2 = h_N*y1N2;
 
-    Jacobian.pa1s = real(hM1*y5M1 + hN1*y5N1);
-    Jacobian.pa2s = real(hM2*y5M2 + hN2*y5N2);
+    Jacobian.partial_kappa_1s = real(hM1 * y5M1 + hN1 * y5N1);
+    Jacobian.partial_kappa_2s = real(hM2 * y5M2 + hN2 * y5N2);
 
     Jacobian.pb1s = real(hM1*y3M1 + hN1*y3N1);
     Jacobian.pb2s = real(hM2*y3M2 + hN2*y3N2);
@@ -499,7 +499,7 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
 }
 
 // Jacobian (parameter, observation, dim_p, dim_x, arguments)
-void JacHes(double *p, double *jac, int /*m*/, int n, void *data) {
+void GetHestonJacobian(double *p, double *jac, int /*m*/, int n, void *data) {
 
     int l, k;
 
@@ -530,10 +530,10 @@ void JacHes(double *p, double *jac, int /*m*/, int n, void *data) {
 
         // integrate
         for (int j=0; j< NumGrids; j++) {
-            tagMNJac jacint = HesIntJac( u[j],a, b, c, rho, v0, K, T, S, r );
+            tagMNJac jacint = GetHestonJacobianIntegrands(u[j], a, b, c, rho, v0, K, T, S, r);
 
-            pa1 += w[j]*jacint.pa1s;
-            pa2 += w[j]*jacint.pa2s;
+            pa1 += w[j]*jacint.partial_kappa_1s;
+            pa2 += w[j]*jacint.partial_kappa_2s;
 
             pb1 += w[j]*jacint.pb1s;
             pb2 += w[j]*jacint.pb2s;
@@ -645,7 +645,7 @@ int main() {
 //    cout << "Parameters:" << "\t         kappa"<<"\t     vinf"<< "\t       vov"<< "\t      rho" << "\t     v0"<<endl;
 //    cout << "\r Initial point:" << "\t"  << scientific << setprecision(8) << p[0]<< "\t" << p[1]<< "\t"<< p[2]<< "\t"<< p[3]<< "\t"<< p[4] << endl;
 //    // Calibrate using analytical gradient
-//    dlevmar_der(GetHestonPrice, JacHes, p, x, m, n_observations, 100, opts, info, NULL, NULL, (void*) &market_parameters);
+//    dlevmar_der(GetHestonPrice, GetHestonJacobian, p, x, m, n_observations, 100, opts, info, NULL, NULL, (void*) &market_parameters);
 //
 //    double stop_s = clock();
 //

@@ -27,6 +27,7 @@ public:
     SwiftEvaluator(SwiftParameters const& params, Distribution const& distribution, OptionContract const& option_contract);
 
     [[nodiscard]] double GetPrice(double F, double K, double r, double q) const;
+    [[nodiscard]] std::vector<double> GetGradient(double F, double K, double r, double q) const;
 
     SwiftParameters m_params;
     Distribution const& m_distribution;

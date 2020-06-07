@@ -36,6 +36,8 @@
 #include <math.h>
 #include <iostream>
 #include <ctime>
+//#include "Levmar/include_levmar.h"
+#include "LEVMAR/levmar.h"
 //#include <levmar.h>
 #include <iomanip>
 
@@ -184,8 +186,9 @@ HestonIntegrandsMN GetHestonIntegrandsMN(double u, double a, double b, double c,
 }
 
 // Heston pricer: (parameter, observation, dim_p, dim_x, arguments)
-void GetHestonPrice(double *p, double *x, int /*m*/, int n_observations, MarketParameters* data_ptr)
+void GetHestonPrice(double *p, double *x, int /*m*/, int n_observations, void *adata)
 {
+    MarketParameters* data_ptr = static_cast<MarketParameters*>(adata);
     int l;
 
     // retrieve market parameters
@@ -235,8 +238,8 @@ void GetHestonPrice(double *p, double *x, int /*m*/, int n_observations, MarketP
 
 // integrands for Jacobian
 struct tagMNJac{
-    double pa1s;
-    double pa2s;
+    double partial_kappa_1s;
+    double partial_kappa_2s;
 
     double pb1s;
     double pb2s;
@@ -253,8 +256,8 @@ struct tagMNJac{
 
 
 // return integrands (real-valued) for Jacobian
-tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
-                   double v0, double K, double T, double S, double r)
+tagMNJac GetHestonJacobianIntegrands(double u, double kappa, double v_bar, double sigma, double rho,
+                                     double v0, double K, double T, double S, double r)
 {
     tagMNJac Jacobian;
 
@@ -269,33 +272,34 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> h_N = pow(K,-imPQ_N)/imPQ_N;
 
     double x0 = log(S) + r*T;
-    double tmp = c*rho;
-    complex<double> kes_M1 = a - tmp*_imPQ_M;
+    double tmp = sigma * rho;
+    complex<double> kes_M1 = kappa - tmp * _imPQ_M;
     complex<double> kes_M2 = kes_M1 + tmp;
-    complex<double> kes_N1 = a - tmp*_imPQ_N;
+    complex<double> kes_N1 = kappa - tmp * _imPQ_N;
     complex<double> kes_N2 = kes_N1 + tmp;
 
-    // m = i*u1 + pow(u1,2);
+    // msqr = u^2
     complex<double> _msqr = pow(PQ_M-i, 2);
     complex<double> _nsqr = pow(PQ_N-i, 2);
     complex<double> msqr = pow(PQ_M-zero*i, 2);
     complex<double> nsqr = pow(PQ_N-zero*i, 2);
 
+    // m = ui + u^2
     complex<double> m_M1 = imPQ_M + one + _msqr; //    m_M1 = (PQ_M - i)*i + pow(PQ_M-i, 2);
     complex<double> m_N1 = imPQ_N + one + _nsqr; //    m_N1 = (PQ_N - i)*i + pow(PQ_N-i, 2);
     complex<double> m_M2 = imPQ_M + msqr;
     complex<double> m_N2 = imPQ_N + nsqr;
 
     // d = sqrt(pow(kes,2) + m*pow(c,2));
-    double csqr = pow(c,2);
+    double csqr = pow(sigma, 2);
     complex<double> d_M1 = sqrt(pow(kes_M1,2) + m_M1*csqr);
     complex<double> d_N1 = sqrt(pow(kes_N1,2) + m_N1*csqr);
     complex<double> d_M2 = sqrt(pow(kes_M2,2) + m_M2*csqr);
     complex<double> d_N2 = sqrt(pow(kes_N2,2) + m_N2*csqr);
 
-    // g = exp(-a*b*rho*T*u1*i/c);
-    double abrt = a*b*rho*T;
-    double tmp1 = -abrt/c;
+    // g = exp(-kappa*b*rho*T*u1*i/c);
+    double abrt = kappa * v_bar * rho * T;
+    double tmp1 = -abrt / sigma;
     double tmp2 = exp(tmp1);
 
     complex<double> g_M2 = exp(tmp1*imPQ_M);
@@ -303,7 +307,9 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> g_M1 = g_M2*tmp2;
     complex<double> g_N1 = g_N2*tmp2;
 
-    // alp, calp, salp
+    // alpha = d * T / 2
+    // calp = cosh(alpha)
+    // salp = sinh(alpha)
     double halft = 0.5*T;
     complex<double> alpha = d_M1*halft;
     complex<double> calp_M1 = cosh(alpha);
@@ -321,7 +327,7 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> calp_N2 = cosh(alpha);
     complex<double> salp_N2 = sinh(alpha);
 
-    // A2 = d*calp + kes*salp;
+    // A2 = d*calp + kes*salp; // TODO: I Think this is missing an 1 / v0. But maybe it always cancels out with another thing in the expressions it's used on
     complex<double> A2_M1 = d_M1*calp_M1 + kes_M1*salp_M1;
     complex<double> A2_N1 = d_N1*calp_N1 + kes_N1*salp_N1;
     complex<double> A2_M2 = d_M2*calp_M2 + kes_M2*salp_M2;
@@ -333,25 +339,26 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> A1_M2 = m_M2*salp_M2;
     complex<double> A1_N2 = m_N2*salp_N2;
 
-    // A = A1/A2;
+    // A = A1/A2; // TODO: Again, this is v0*A, which is consistent with a missing v0 term in dF_dv0. Should be written though.
     complex<double> A_M1 = A1_M1/A2_M1;
     complex<double> A_N1 = A1_N1/A2_N1;
     complex<double> A_M2 = A1_M2/A2_M2;
     complex<double> A_N2 = A1_N2/A2_N2;
 
-    // B = d*exp(a*T/2)/A2;
-    tmp = exp(a*halft); // exp(a*T/2)
+    // B = d*exp(kappa*T/2)/A2;
+    tmp = exp(kappa * halft); // exp(kappa*T/2)
     complex<double> B_M1 = d_M1*tmp/A2_M1;
     complex<double> B_N1 = d_N1*tmp/A2_N1;
     complex<double> B_M2 = d_M2*tmp/A2_M2;
     complex<double> B_N2 = d_N2*tmp/A2_N2;
 
-    // characteristic function: y1 = exp(i*x0*u1) * exp(-v0*A) * g * exp(2*a*b/pow(c,2)*D)
-    double tmp3 = 2*a*b/csqr;
-    complex<double> D_M1 = log(d_M1) + (a - d_M1)*halft - log((d_M1 + kes_M1)*0.5 + (d_M1 - kes_M1)*0.5*exp(-d_M1*T));
-    complex<double> D_M2 = log(d_M2) + (a - d_M2)*halft - log((d_M2 + kes_M2)*0.5 + (d_M1 - kes_M2)*0.5*exp(-d_M2*T));
-    complex<double> D_N1 = log(d_N1) + (a - d_N1)*halft - log((d_N1 + kes_N1)*0.5 + (d_N1 - kes_N1)*0.5*exp(-d_N1*T));
-    complex<double> D_N2 = log(d_N2) + (a - d_N2)*halft - log((d_N2 + kes_N2)*0.5 + (d_N2 - kes_N2)*0.5*exp(-d_N2*T));
+    // characteristic function: y1 = exp(i*x0*u1) * exp(-v0*A) * g * exp(2*kappa*b/pow(c,2)*D)
+    double tmp3 = 2 * kappa * v_bar / csqr;
+    complex<double> D_M1 = log(d_M1) + (kappa - d_M1) * halft - log((d_M1 + kes_M1) * 0.5 + (d_M1 - kes_M1) * 0.5 * exp(-d_M1 * T));
+//    complex<double> D_M2 = log(d_M2) + (kappa - d_M2) * halft - log((d_M2 + kes_M2) * 0.5 + (d_M1 - kes_M2) * 0.5 * exp(-d_M2 * T)); // TODO: The original had this, but I think is wrong.
+    complex<double> D_M2 = log(d_M2) + (kappa - d_M2) * halft - log((d_M2 + kes_M2) * 0.5 + (d_M2 - kes_M2) * 0.5 * exp(-d_M2 * T));
+    complex<double> D_N1 = log(d_N1) + (kappa - d_N1) * halft - log((d_N1 + kes_N1) * 0.5 + (d_N1 - kes_N1) * 0.5 * exp(-d_N1 * T));
+    complex<double> D_N2 = log(d_N2) + (kappa - d_N2) * halft - log((d_N2 + kes_N2) * 0.5 + (d_N2 - kes_N2) * 0.5 * exp(-d_N2 * T));
 
 
     complex<double> y1M1 = exp(x0*_imPQ_M-v0*A_M1 + tmp3*D_M1) * g_M1;
@@ -372,9 +379,9 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> lnB_N1 = D_N1;
     complex<double> lnB_N2 = D_N2;
 
-    // partial b: y3 = y1*(2*a*lnB/pow(c,2)-a*rho*T*u1*i/c);
-    double tmp4 = tmp3/b;
-    double tmp5 = tmp1/b;
+    // partial b: y3 = y1*(2*kappa*lnB/pow(c,2)-kappa*rho*T*u1*i/c);
+    double tmp4 = tmp3 / v_bar;
+    double tmp5 = tmp1 / v_bar;
 
     complex<double> y3M1 = tmp4*lnB_M1 + tmp5*_imPQ_M;
     complex<double> y3M2 = tmp4*lnB_M2 + tmp5*imPQ_M;
@@ -382,10 +389,10 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> y3N2 = tmp4*lnB_N2 + tmp5*imPQ_N;
 
     // partial rho:
-    tmp1 = tmp1/rho;//-a*b*T/c;
+    tmp1 = tmp1/rho;//-kappa*b*T/c;
 
     // for M1
-    complex<double> ctmp = c*_imPQ_M/d_M1;
+    complex<double> ctmp = sigma * _imPQ_M / d_M1;
     complex<double> pd_prho_M1 = -kes_M1*ctmp;
     complex<double> pA1_prho_M1 = m_M1*calp_M1*halft*pd_prho_M1;
     complex<double> pA2_prho_M1 = -ctmp* H_M1*(one+kes_M1*halft);
@@ -395,7 +402,7 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> y4M1 = -v0*pA_prho_M1 + tmp3* ctmp/d_M1 + tmp1*_imPQ_M;
 
     // for N1
-    ctmp = c*_imPQ_N/d_N1;
+    ctmp = sigma * _imPQ_N / d_N1;
     complex<double> pd_prho_N1 = -kes_N1*ctmp;
     complex<double> pA1_prho_N1 = m_N1*calp_N1*halft*pd_prho_N1;
     complex<double> pA2_prho_N1 = -ctmp*H_N1*(one+kes_N1*halft);
@@ -405,77 +412,78 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> y4N1 = -v0*pA_prho_N1 + tmp3* ctmp/d_N1 + tmp1*_imPQ_N;
 
     // for M2
-    ctmp =c*imPQ_M/d_M2;
-    complex<double> pd_prho_M2 = -kes_M2*ctmp;
-    complex<double> pA1_prho_M2 = m_M2*calp_M2*halft*pd_prho_M2;
-    complex<double> pA2_prho_M2 = -ctmp*H_M2*(one+kes_M2*halft)/d_M2;
+    ctmp = sigma * imPQ_M / d_M2;
+    complex<double> pd_prho_M2 = -kes_M2 * ctmp; // dd_drho = - xi sigma i u / d. Correct
+    complex<double> pA1_prho_M2 = m_M2 * calp_M2 * halft * pd_prho_M2;
+//    complex<double> pA2_prho_M2 = -ctmp * H_M2 * (one + kes_M2 * halft) / d_M2; // TODO: It was like this, but I'm pretty sure it's wrong
+    complex<double> pA2_prho_M2 = -ctmp * H_M2 * (one + kes_M2 * halft);
     complex<double> pA_prho_M2 = (pA1_prho_M2 - A_M2*pA2_prho_M2)/A2_M2;
     ctmp = pd_prho_M2 - pA2_prho_M2*d_M2/A2_M2;
     complex<double> pB_prho_M2 = tmp/A2_M2*ctmp;
     complex<double> y4M2 = -v0*pA_prho_M2 + tmp3* ctmp/d_M2 + tmp1*imPQ_M;
 
     // for N2
-    ctmp = c*imPQ_N/d_N2;
-    complex<double> pd_prho_N2 = -kes_N2*ctmp;
-    complex<double> pA1_prho_N2 = m_N2*calp_N2*halft*pd_prho_N2;
-    complex<double> pA2_prho_N2 = -ctmp*H_N2*(one+kes_N2*halft);
-    complex<double> pA_prho_N2 = (pA1_prho_N2 - A_N2*pA2_prho_N2)/A2_N2;
+    ctmp = sigma * imPQ_N / d_N2;
+    complex<double> pd_prho_N2 = -kes_N2 * ctmp; // dd_drho = - xi sigma i u / d. Correct
+    complex<double> pA1_prho_N2 = m_N2 * calp_N2 * halft * pd_prho_N2;
+    complex<double> pA2_prho_N2 = -ctmp * H_N2 * (one + kes_N2 * halft);
+    complex<double> pA_prho_N2 = (pA1_prho_N2 - A_N2*pA2_prho_N2)/A2_N2; // dA_drho = (dA1_drho * A2 - A1 dA2_drho) / A2^2
     ctmp = pd_prho_N2 - pA2_prho_N2*d_N2/A2_N2;
     complex<double> pB_prho_N2 = tmp/A2_N2*ctmp;
     complex<double> y4N2 = -v0*pA_prho_N2 + tmp3*ctmp/d_N2 + tmp1*imPQ_N;
 
-    // partial a:
-    tmp1 = b*rho*T/c;
-    tmp2 = tmp3/a;//2*b/csqr;
-    ctmp = -one/(c*_imPQ_M);
+    // partial kappa:
+    tmp1 = v_bar * rho * T / sigma;
+    tmp2 = tmp3 / kappa;//2*b/csqr;
+    ctmp = -one/(sigma * _imPQ_M);
 
     complex<double> pB_pa = ctmp*pB_prho_M1 + B_M1*halft;
-    complex<double> y5M1 = -v0*pA_prho_M1*ctmp + tmp2*lnB_M1 + a*tmp2*pB_pa/B_M1 - tmp1*_imPQ_M;
+    complex<double> y5M1 = -v0*pA_prho_M1*ctmp + tmp2*lnB_M1 + kappa * tmp2 * pB_pa / B_M1 - tmp1 * _imPQ_M;
 
-    ctmp = -one/(c*imPQ_M);
+    ctmp = -one/(sigma * imPQ_M);
     pB_pa = ctmp*pB_prho_M2 + B_M2*halft;
-    complex<double> y5M2 = -v0*pA_prho_M2*ctmp + tmp2*lnB_M2 + a*tmp2*pB_pa/B_M2 - tmp1*imPQ_M;
+    complex<double> y5M2 = -v0*pA_prho_M2*ctmp + tmp2*lnB_M2 + kappa * tmp2 * pB_pa / B_M2 - tmp1 * imPQ_M;
 
-    ctmp = -one/(c*_imPQ_N);
+    ctmp = -one/(sigma * _imPQ_N);
     pB_pa = ctmp*pB_prho_N1 + B_N1*halft;
-    complex<double> y5N1 = -v0*pA_prho_N1*ctmp + tmp2*lnB_N1 + a*tmp2*pB_pa/B_N1 - tmp1*_imPQ_N;
+    complex<double> y5N1 = -v0*pA_prho_N1*ctmp + tmp2*lnB_N1 + kappa * tmp2 * pB_pa / B_N1 - tmp1 * _imPQ_N;
 
-    ctmp = -one/(c*imPQ_N);
+    ctmp = -one/(sigma * imPQ_N);
     pB_pa = ctmp*pB_prho_N2 + B_N2*halft;
-    complex<double> y5N2 = -v0*pA_prho_N2*ctmp + tmp2*lnB_N2 + a*tmp2*pB_pa/B_N2 - tmp1*imPQ_N;
+    complex<double> y5N2 = -v0*pA_prho_N2*ctmp + tmp2*lnB_N2 + kappa * tmp2 * pB_pa / B_N2 - tmp1 * imPQ_N;
 
     // partial c:
-    tmp = rho/c;
-    tmp1 = 4*a*b/pow(c,3);
+    tmp = rho / sigma;
+    tmp1 = 4 * kappa * v_bar / pow(sigma, 3);
     tmp2 = abrt/csqr;
 
     // M1
-    complex<double> pd_pc = (tmp - one/kes_M1)*pd_prho_M1 + c*_msqr/d_M1;
+    complex<double> pd_pc = (tmp - one/kes_M1)*pd_prho_M1 + sigma * _msqr / d_M1;
     complex<double> pA1_pc = m_M1*calp_M1*halft*pd_pc;
-    complex<double> pA2_pc = tmp*pA2_prho_M1 -one/_imPQ_M*(two/(T*kes_M1)+one)*pA1_prho_M1 + c*halft*A1_M1;
+    complex<double> pA2_pc = tmp*pA2_prho_M1 -one/_imPQ_M*(two/(T*kes_M1)+one)*pA1_prho_M1 + sigma * halft * A1_M1;
     complex<double> pA_pc = pA1_pc/A2_M1 - A_M1/A2_M1*pA2_pc;
     complex<double> y6M1 = -v0*pA_pc - tmp1 *lnB_M1 + tmp3/d_M1*(pd_pc - d_M1/A2_M1*pA2_pc) +
                            tmp2*_imPQ_M;
 
     // M2
-    pd_pc = (tmp - one/kes_M2)*pd_prho_M2 + c*msqr/d_M2;
+    pd_pc = (tmp - one/kes_M2)*pd_prho_M2 + sigma * msqr / d_M2;
     pA1_pc = m_M2*calp_M2*halft*pd_pc;
-    pA2_pc = tmp*pA2_prho_M2 - one/imPQ_M*(two/(T*kes_M2)+one)*pA1_prho_M2 + c*halft*A1_M2;
+    pA2_pc = tmp*pA2_prho_M2 - one/imPQ_M*(two/(T*kes_M2)+one)*pA1_prho_M2 + sigma * halft * A1_M2;
     pA_pc = pA1_pc/A2_M2 - A_M2/A2_M2*pA2_pc;
     complex<double> y6M2 = -v0*pA_pc - tmp1 *lnB_M2 + tmp3/d_M2*(pd_pc - d_M2/A2_M2*pA2_pc) +
                            tmp2*imPQ_M;
 
     // N1
-    pd_pc = (tmp - one/kes_N1)*pd_prho_N1 +  c*_nsqr/d_N1;
+    pd_pc = (tmp - one/kes_N1)*pd_prho_N1 + sigma * _nsqr / d_N1;
     pA1_pc = m_N1*calp_N1*halft*pd_pc;
-    pA2_pc = tmp*pA2_prho_N1 - one/(_imPQ_N)*(two/(T*kes_N1)+one)*pA1_prho_N1 + c*halft*A1_N1;
+    pA2_pc = tmp*pA2_prho_N1 - one/(_imPQ_N)*(two/(T*kes_N1)+one)*pA1_prho_N1 + sigma * halft * A1_N1;
     pA_pc = pA1_pc/A2_N1 - A_N1/A2_N1*pA2_pc;
     complex<double> y6N1 = -v0*pA_pc - tmp1 *lnB_N1 + tmp3/d_N1*(pd_pc - d_N1/A2_N1*pA2_pc) + tmp2*_imPQ_N;
 
     // N2
-    pd_pc = (tmp - one/kes_N2)*pd_prho_N2 +  c*nsqr/d_N2;
+    pd_pc = (tmp - one/kes_N2)*pd_prho_N2 + sigma * nsqr / d_N2;
     pA1_pc = m_N2*calp_N2*halft*pd_pc;
-    pA2_pc = tmp*pA2_prho_N2 - one/(imPQ_N)*(two/(T*kes_N2)+one)*pA1_prho_N2 + c*halft*A1_N2;
+    pA2_pc = tmp*pA2_prho_N2 - one/(imPQ_N)*(two/(T*kes_N2)+one)*pA1_prho_N2 + sigma * halft * A1_N2;
     pA_pc = pA1_pc/A2_N2 - A_N2/A2_N2*pA2_pc;
     complex<double> y6N2 = -v0*pA_pc - tmp1 *lnB_N2 + tmp3/d_N2*(pd_pc - d_N2/A2_N2*pA2_pc) + tmp2*imPQ_N;
 
@@ -484,8 +492,8 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
     complex<double> hN1 = h_N*y1N1;
     complex<double> hN2 = h_N*y1N2;
 
-    Jacobian.pa1s = real(hM1*y5M1 + hN1*y5N1);
-    Jacobian.pa2s = real(hM2*y5M2 + hN2*y5N2);
+    Jacobian.partial_kappa_1s = real(hM1 * y5M1 + hN1 * y5N1);
+    Jacobian.partial_kappa_2s = real(hM2 * y5M2 + hN2 * y5N2);
 
     Jacobian.pb1s = real(hM1*y3M1 + hN1*y3N1);
     Jacobian.pb2s = real(hM2*y3M2 + hN2*y3N2);
@@ -503,20 +511,19 @@ tagMNJac HesIntJac(double u, double a, double b, double c, double rho,
 }
 
 // Jacobian (parameter, observation, dim_p, dim_x, arguments)
-void JacHes(double *p, double *jac, int /*m*/, int n, void *data) {
+void GetHestonJacobian(double *p, double *jac, int /*m*/, int n, void *adata) {
+    MarketParameters* market_data_ptr = static_cast<MarketParameters*>(adata);
 
     int l, k;
 
     // retrieve market parameters
-    struct MarketParameters *dptr;
-    dptr=(struct MarketParameters *)data;
-    double S = dptr->S;
-    double r = dptr->r;
+    double S = market_data_ptr->S;
+    double r = market_data_ptr->r;
 
     // retrieve model parameters
-    double a = p[0];
-    double b = p[1];
-    double c = p[2];
+    double kappa = p[0];
+    double v_bar = p[1];
+    double sigma = p[2];
     double rho = p[3];
     double v0 = p[4];
 
@@ -527,17 +534,17 @@ void JacHes(double *p, double *jac, int /*m*/, int n, void *data) {
     double *w = gauss_legendre_aw.w;
 
     for (l=k=0; l<n; ++l) {
-        double K = dptr->K[l];
-        double T = dptr->T[l];
+        double K = market_data_ptr->K[l];
+        double T = market_data_ptr->T[l];
         double discpi = exp(-r*T)/pi;
         double pa1 = 0.0, pa2 = 0.0, pb1 = 0.0, pb2 = 0.0, pc1 = 0.0, pc2 = 0.0, prho1 = 0.0, prho2 = 0.0, pv01 = 0.0, pv02 = 0.0;
 
         // integrate
         for (int j=0; j< NumGrids; j++) {
-            tagMNJac jacint = HesIntJac( u[j],a, b, c, rho, v0, K, T, S, r );
+            tagMNJac jacint = GetHestonJacobianIntegrands(u[j], kappa, v_bar, sigma, rho, v0, K, T, S, r);
 
-            pa1 += w[j]*jacint.pa1s;
-            pa2 += w[j]*jacint.pa2s;
+            pa1 += w[j]*jacint.partial_kappa_1s;
+            pa2 += w[j]*jacint.partial_kappa_2s;
 
             pb1 += w[j]*jacint.pb1s;
             pb2 += w[j]*jacint.pb2s;
@@ -571,6 +578,7 @@ void JacHes(double *p, double *jac, int /*m*/, int n, void *data) {
         Qv1 = Q*pv01;
         Qv2 = Q*pv02;
         jac[k++] = discpi*(Qv1-K*Qv2);
+        continue;
     }
 }
 
@@ -624,69 +632,76 @@ int main() {
     // compute the market_parameters observations with pstar
     double x[40];
     GetHestonPrice(pstar, x, m, n_observations, &market_parameters);
-    for (int j = 0; j < n_observations; ++j)
-        std::cout << "K " << market_parameters.K[j] << " T " << market_parameters.T[j] << " value " << x[j] << std::endl;
+//    for (int j = 0; j < n_observations; ++j)
+//        std::cout << "K " << market_parameters.K[j] << " T " << market_parameters.T[j] << " value " << x[j] << std::endl;
 
-//    // >>> Enter calibrating routine >>>
-//    double start_s = clock();
-//
-//    // algorithm parameters
-//    double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
-//    opts[0]=LM_INIT_MU;
-//    // stopping thresholds for
-//    opts[1]=1E-10;       // ||J^T e||_inf
-//    opts[2]=1E-10;       // ||Dp||_2
-//    opts[3]=1E-10;       // ||e||_2
-//    opts[4]= LM_DIFF_DELTA; // finite difference if used
-//
-//    // you may set up your initial point here:
-//    double p[5];
-//    p[0] = 1.2000;
-//    p[1] = 0.20000;
-//    p[2] = 0.3000;
-//    p[3] = -0.6000;
-//    p[4] = 0.2000;
-//
-//    cout << "\r-------- -------- -------- Heston Model Calibrator -------- -------- --------"<<endl;
-//    cout << "Parameters:" << "\t         kappa"<<"\t     vinf"<< "\t       vov"<< "\t      rho" << "\t     v0"<<endl;
-//    cout << "\r Initial point:" << "\t"  << scientific << setprecision(8) << p[0]<< "\t" << p[1]<< "\t"<< p[2]<< "\t"<< p[3]<< "\t"<< p[4] << endl;
-//    // Calibrate using analytical gradient
-//    dlevmar_der(GetHestonPrice, JacHes, p, x, m, n_observations, 100, opts, info, NULL, NULL, (void*) &market_parameters);
-//
-//    double stop_s = clock();
-//
-//    cout << "Optimum found:" << scientific << setprecision(8) << "\t"<< p[0]<< "\t" << p[1]<< "\t"<< p[2]<< "\t"<< p[3]<< "\t"<< p[4] << endl;
-//    cout << "Real optimum:" << "\t" << pstar[0]<<"\t"<< pstar[1]<< "\t"<< pstar[2]<< "\t"<< pstar[3]<< "\t"<< pstar[4] << endl;
-//
-//    if (int(info[6]) == 6) {
-//        cout << "\r Solved: stopped by small ||e||_2 = "<< info[1] << " < " << opts[3]<< endl;
-//    } else if (int(info[6]) == 1) {
-//        cout << "\r Solved: stopped by small gradient J^T e = " << info[2] << " < " << opts[1]<< endl;
-//    } else if (int(info[6]) == 2) {
-//        cout << "\r Solved: stopped by small change Dp = " << info[3] << " < " << opts[2]<< endl;
-//    } else if (int(info[6]) == 3) {
-//        cout << "\r Unsolved: stopped by itmax " << endl;
-//    } else if (int(info[6]) == 4) {
-//        cout << "\r Unsolved: singular matrix. Restart from current p with increased mu"<< endl;
-//    } else if (int(info[6]) == 5) {
-//        cout << "\r Unsolved: no further error reduction is possible. Restart with increased mu"<< endl;
-//    } else if (int(info[6]) == 7) {
-//        cout << "\r Unsolved: stopped by invalid values, user error"<< endl;
-//    }
-//
-//    cout << "\r-------- -------- -------- Computational cost -------- -------- --------"<<endl;
-//    cout << "\r          Time cost: "<< double(stop_s - start_s) / CLOCKS_PER_SEC << " seconds "<<endl;
-//    cout << "         Iterations: " << int(info[5]) << endl;
-//    cout << "         pv  Evalue: " << int(info[7]) << endl;
-//    cout << "         Jac Evalue: "<< int(info[8]) << endl;
-//    cout << "# of lin sys solved: " << int(info[9])<< endl; //The attempts to reduce error
-//    cout << "\r-------- -------- -------- Residuals -------- -------- --------"<<endl;
-//    cout << " \r            ||e0||_2: " << info[0] << endl;
-//    cout << "           ||e*||_2: " << info[1]<<endl;
-//    cout << "          ||J'e||_inf: " << info[2]<<endl;
-//    cout << "           ||Dp||_2: " << info[3]<<endl;
-//
-//    return 0;
+//    double jacobian[40 * 5];
+//    GetHestonJacobian(pstar, jacobian, m, n_observations, &market_parameters);
+//    for (int j = 0; j < n_observations; ++j)
+//        std::cout << "K " << market_parameters.K[j] << " T " << market_parameters.T[j] << " jacobian " << jacobian[j] << " " << jacobian[j + 1] << " " << jacobian[j + 2] << " " << jacobian[j + 3]
+//            << " " << jacobian[j + 4] << " " << std::endl;
+
+    // >>> Enter calibrating routine >>>
+    double start_s = clock();
+
+    // algorithm parameters
+    double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
+    opts[0]=LM_INIT_MU;
+    // stopping thresholds for
+    opts[1]=1E-10;       // ||J^T e||_inf
+    opts[2]=1E-10;       // ||Dp||_2
+    opts[3]=1E-10;       // ||e||_2
+    opts[4]= LM_DIFF_DELTA; // finite difference if used
+
+    // you may set up your initial point here:
+    double p[5];
+    p[0] = 1.2000;
+    p[1] = 0.20000;
+    p[2] = 0.3000;
+    p[3] = -0.6000;
+    p[4] = 0.2000;
+
+
+    cout << "\r-------- -------- -------- Heston Model Calibrator -------- -------- --------"<<endl;
+    cout << "Parameters:" << "\t         kappa"<<"\t     vinf"<< "\t       vov"<< "\t      rho" << "\t     v0"<<endl;
+    cout << "\r Initial point:" << "\t"  << scientific << setprecision(8) << p[0]<< "\t" << p[1]<< "\t"<< p[2]<< "\t"<< p[3]<< "\t"<< p[4] << endl;
+    // Calibrate using analytical gradient
+    dlevmar_der(GetHestonPrice, GetHestonJacobian, p, x, m, n_observations, 100, opts, info, NULL, NULL, (void*) &market_parameters);
+
+    double stop_s = clock();
+
+    cout << "Optimum found:" << scientific << setprecision(8) << "\t"<< p[0]<< "\t" << p[1]<< "\t"<< p[2]<< "\t"<< p[3]<< "\t"<< p[4] << endl;
+    cout << "Real optimum:" << "\t" << pstar[0]<<"\t"<< pstar[1]<< "\t"<< pstar[2]<< "\t"<< pstar[3]<< "\t"<< pstar[4] << endl;
+
+    if (int(info[6]) == 6) {
+        cout << "\r Solved: stopped by small ||e||_2 = "<< info[1] << " < " << opts[3]<< endl;
+    } else if (int(info[6]) == 1) {
+        cout << "\r Solved: stopped by small gradient J^T e = " << info[2] << " < " << opts[1]<< endl;
+    } else if (int(info[6]) == 2) {
+        cout << "\r Solved: stopped by small change Dp = " << info[3] << " < " << opts[2]<< endl;
+    } else if (int(info[6]) == 3) {
+        cout << "\r Unsolved: stopped by itmax " << endl;
+    } else if (int(info[6]) == 4) {
+        cout << "\r Unsolved: singular matrix. Restart from current p with increased mu"<< endl;
+    } else if (int(info[6]) == 5) {
+        cout << "\r Unsolved: no further error reduction is possible. Restart with increased mu"<< endl;
+    } else if (int(info[6]) == 7) {
+        cout << "\r Unsolved: stopped by invalid values, user error"<< endl;
+    }
+
+    cout << "\r-------- -------- -------- Computational cost -------- -------- --------"<<endl;
+    cout << "\r          Time cost: "<< double(stop_s - start_s) / CLOCKS_PER_SEC << " seconds "<<endl;
+    cout << "         Iterations: " << int(info[5]) << endl;
+    cout << "         pv  Evalue: " << int(info[7]) << endl;
+    cout << "         Jac Evalue: "<< int(info[8]) << endl;
+    cout << "# of lin sys solved: " << int(info[9])<< endl; //The attempts to reduce error
+    cout << "\r-------- -------- -------- Residuals -------- -------- --------"<<endl;
+    cout << " \r            ||e0||_2: " << info[0] << endl;
+    cout << "           ||e*||_2: " << info[1]<<endl;
+    cout << "          ||J'e||_inf: " << info[2]<<endl;
+    cout << "           ||Dp||_2: " << info[3]<<endl;
+
+    return 0;
 } // The End
 
 /////// RESULTS ////////
@@ -730,3 +745,45 @@ int main() {
 // K 1.4736 T 0.714286 value 0.00522975
 // K 1.5005 T 1.07143 value 0.0138154
 // K 1.5328 T 1.42857 value 0.0232216
+
+///// JACOBIAN /////
+// K 0.9371 T 0.119048 jacobian 0.000134411 0.0280474 0.00330929 -0.00115206 0.151462
+// K 0.8603 T 0.238095 jacobian 0.0280474 0.00330929 -0.00115206 0.151462 0.00013057
+// K 0.8112 T 0.357143 jacobian 0.00330929 -0.00115206 0.151462 0.00013057 0.0470073
+// K 0.776  T 0.47619 jacobian -0.00115206 0.151462 0.00013057 0.0470073 0.00667033
+// K 0.747  T 0.595238 jacobian 0.151462 0.00013057 0.0470073 0.00667033 -0.00209303
+// K 0.7216 T 0.714286 jacobian 0.00013057 0.0470073 0.00667033 -0.00209303 0.122985
+// K 0.6699 T 1.07143 jacobian 0.0470073 0.00667033 -0.00209303 0.122985 9.70534e-05
+// K 0.6137 T 1.42857 jacobian 0.00667033 -0.00209303 0.122985 9.70534e-05 0.0648615
+// K 0.9956 T 0.119048 jacobian -0.00209303 0.122985 9.70534e-05 0.0648615 0.00843795
+// K 0.9868 T 0.238095 jacobian 0.122985 9.70534e-05 0.0648615 0.00843795 -0.00258074
+// K 0.9728 T 0.357143 jacobian 9.70534e-05 0.0648615 0.00843795 -0.00258074 0.108681
+// K 0.9588 T 0.47619 jacobian 0.0648615 0.00843795 -0.00258074 0.108681 5.03625e-05
+// K 0.9464 T 0.595238 jacobian 0.00843795 -0.00258074 0.108681 5.03625e-05 0.0828498
+// K 0.9358 T 0.714286 jacobian -0.00258074 0.108681 5.03625e-05 0.0828498 0.00964842
+// K 0.9175 T 1.07143 jacobian 0.108681 5.03625e-05 0.0828498 0.00964842 -0.00292833
+// K 0.9025 T 1.42857 jacobian 5.03625e-05 0.0828498 0.00964842 -0.00292833 0.0998212
+// K 1.0427 T 0.119048 jacobian 0.0828498 0.00964842 -0.00292833 0.0998212 -7.7858e-06
+// K 1.0463 T 0.238095 jacobian 0.00964842 -0.00292833 0.0998212 -7.7858e-06 0.0993605
+// K 1.0499 T 0.357143 jacobian -0.00292833 0.0998212 -7.7858e-06 0.0993605 0.0105137
+// K 1.053  T 0.47619 jacobian 0.0998212 -7.7858e-06 0.0993605 0.0105137 -0.00318009
+// K 1.0562 T 0.595238 jacobian -7.7858e-06 0.0993605 0.0105137 -0.00318009 0.0919321
+// K 1.0593 T 0.714286 jacobian 0.0993605 0.0105137 -0.00318009 0.0919321 -7.20676e-05
+// K 1.0663 T 1.07143 jacobian 0.0105137 -0.00318009 0.0919321 -7.20676e-05 0.113913
+// K 1.0766 T 1.42857 jacobian -0.00318009 0.0919321 -7.20676e-05 0.113913 0.0111302
+// K 1.2287 T 0.119048 jacobian 0.0919321 -7.20676e-05 0.113913 0.0111302 -0.0033591
+// K 1.2399 T 0.238095 jacobian -7.20676e-05 0.113913 0.0111302 -0.0033591 0.0845044
+// K 1.2485 T 0.357143 jacobian 0.113913 0.0111302 -0.0033591 0.0845044 -0.000245948
+// K 1.2659 T 0.47619 jacobian 0.0111302 -0.0033591 0.0845044 -0.000245948 0.157405
+// K 1.2646 T 0.595238 jacobian -0.0033591 0.0845044 -0.000245948 0.157405 0.0122512
+// K 1.2715 T 0.714286 jacobian 0.0845044 -0.000245948 0.157405 0.0122512 -0.00371867
+// K 1.2859 T 1.07143 jacobian -0.000245948 0.157405 0.0122512 -0.00371867 0.0703176
+// K 1.3046 T 1.42857 jacobian 0.157405 0.0122512 -0.00371867 0.0703176 -0.000402963
+// K 1.3939 T 0.119048 jacobian 0.0122512 -0.00371867 0.0703176 -0.000402963 0.17316
+// K 1.4102 T 0.238095 jacobian -0.00371867 0.0703176 -0.000402963 0.17316 0.0123411
+// K 1.4291 T 0.357143 jacobian 0.0703176 -0.000402963 0.17316 0.0123411 -0.00370551
+// K 1.4456 T 0.47619 jacobian -0.000402963 0.17316 0.0123411 -0.00370551 0.0539117
+// K 1.4603 T 0.595238 jacobian 0.17316 0.0123411 -0.00370551 0.0539117 0.000226969
+// K 1.4736 T 0.714286 jacobian 0.0123411 -0.00370551 0.0539117 0.000226969 0.0375877
+// K 1.5005 T 1.07143 jacobian -0.00370551 0.0539117 0.000226969 0.0375877 -0.000662676
+// K 1.5328 T 1.42857 jacobian 0.0539117 0.000226969 0.0375877 -0.000662676 -6.89813e-05

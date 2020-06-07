@@ -2,12 +2,18 @@
 #                        http://www.insightsoftwareconsortium.org/wiki/index.php/CMake_Tutorial
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT(LEVMAR)
 
-SET(HAVE_LAPACK 1 CACHE BOOL "Do we have LAPACK/BLAS?")
+# Set the project name to the name of the directory replacing any spaces by _
+get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
+string(REPLACE " " "_" ProjectId ${PROJECT_NAME})
+
+message(${PROJECT_NAME})
+project(${PROJECT_NAME})
+
+SET(HAVE_LAPACK 1 CACHE BOOL "Do we have LAPACK/BLAS?" FORCE)
 # the directory where the lapack/blas/f2c libraries reside
-SET(LAPACKBLAS_DIR "/usr/lib" CACHE PATH "Path to lapack/blas libraries")
-SET(NEED_F2C 1 CACHE BOOL "Do we need either f2c or F77/I77?")
+SET(LAPACKBLAS_DIR "/usr/lib" CACHE PATH "Path to lapack/blas libraries" FORCE)
+SET(NEED_F2C 0 CACHE BOOL "Do we need either f2c or F77/I77?" FORCE)
 SET(HAVE_PLASMA 0 CACHE BOOL "Do we have PLASMA parallel linear algebra library?")
 IF(HAVE_PLASMA)
  SET(PLASMA_DIR "/usr/local/PLASMA" CACHE PATH "Path to PLASMA root")
@@ -15,7 +21,6 @@ ENDIF(HAVE_PLASMA)
 SET(LINSOLVERS_RETAIN_MEMORY 1 CACHE BOOL "Should linear solvers retain working memory between calls? (non-reentrant!)")
 SET(LM_DBL_PREC 1 CACHE BOOL "Build double precision routines?")
 SET(LM_SNGL_PREC 1 CACHE BOOL "Build single precision routines?")
-OPTION(BUILD_DEMO "Build demo program?" TRUE)
 
 # actual names for the lapack/blas/f2c libraries
 SET(LAPACKBLAS_LIB_NAMES "lapack;blas" CACHE STRING "The name of the lapack & blas libraries")
@@ -60,38 +65,30 @@ IF(HAVE_PLASMA)
 ENDIF(HAVE_PLASMA)
 
 # levmar library source files
-ADD_LIBRARY(levmar STATIC
+add_library(${PROJECT_NAME} STATIC
   lm.c Axb.c misc.c lmlec.c lmbc.c lmblec.c lmbleic.c
   levmar.h misc.h compiler.h
 )
 
-# demo program
-IF(BUILD_DEMO)
-  SET(LIBS levmar)
-
-  LINK_DIRECTORIES(${CMAKE_BINARY_DIR}) # location of the levmar library
-  LINK_DIRECTORIES(${LAPACKBLAS_DIR})
+LINK_DIRECTORIES(${CMAKE_BINARY_DIR}) # location of the levmar library
+LINK_DIRECTORIES(${LAPACKBLAS_DIR})
 
 # libraries the demo depends on
-  IF(HAVE_PLASMA)
-    LINK_DIRECTORIES(${PLASMA_DIR}/lib)
-    SET(LIBS ${LIBS} ${PLASMA_LIB_NAMES})
-  ENDIF(HAVE_PLASMA)
+IF(HAVE_PLASMA)
+  LINK_DIRECTORIES(${PLASMA_DIR}/lib)
+  SET(LIBS ${LIBS} ${PLASMA_LIB_NAMES})
+ENDIF(HAVE_PLASMA)
 
-  IF(HAVE_LAPACK)
-    IF(NEED_F2C)
-      SET(LIBS ${LIBS} ${LAPACKBLAS_LIB_NAMES} ${F2C_LIB_NAME})
-    ELSE(NEED_F2C)
-      SET(LIBS ${LIBS} ${LAPACKBLAS_LIB_NAMES})
-    ENDIF(NEED_F2C)
-  ENDIF(HAVE_LAPACK)
+IF(HAVE_LAPACK)
+  IF(NEED_F2C)
+    SET(LIBS ${LIBS} ${LAPACKBLAS_LIB_NAMES} ${F2C_LIB_NAME})
+  ELSE(NEED_F2C)
+    SET(LIBS ${LIBS} ${LAPACKBLAS_LIB_NAMES})
+  ENDIF(NEED_F2C)
+ENDIF(HAVE_LAPACK)
 
-  ADD_EXECUTABLE(lmdemo lmdemo.c levmar.h)
-  TARGET_LINK_LIBRARIES(lmdemo ${LIBS})
-  MESSAGE(STATUS "lmdemo will be linked against ${LIBS}")
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBS})
 
-# make sure that the library is built before the demo
-  ADD_DEPENDENCIES(lmdemo levmar)
-ENDIF(BUILD_DEMO)
+add_subdirectory(LEVMAR_DEMO)
 
 #SUBDIRS(matlab)

@@ -5,13 +5,23 @@
 class Distribution
 {
 public:
-    Distribution(double T) : m_T(T)
+    explicit Distribution(double T) : m_T(T)
     { }
     virtual ~Distribution() = default;
     [[nodiscard]] virtual std::complex<double> GetNonXChar(double u) const = 0;
     [[nodiscard]] std::complex<double> GetChar(double u, double x) const
     {
         return GetNonXChar(u) * GetCharPositionFactor(x, u);
+    }
+    [[nodiscard]] virtual std::vector<std::complex<double>> GetNonXCharGradient(double u) const = 0;
+
+    [[nodiscard]] std::vector<std::complex<double>> GetCharGradient(double u, double x) const
+    {
+        std::vector<std::complex<double>> result_components = GetNonXCharGradient(u);
+        std::complex<double> x_factor = GetCharPositionFactor(x, u);
+        for (auto& val : result_components)
+            val *= x_factor;
+        return result_components;
     }
 
     // The overall char is regular char * this.
@@ -20,6 +30,8 @@ public:
     {
         return std::exp(-1i * x * u);
     }
+
+    virtual std::size_t GetNumberOfParameters() const = 0;
 
     static double GetXCompression(double future, double strike, double r, double q, double tau)
     {
@@ -30,38 +42,64 @@ public:
     double m_T;
 };
 
+struct GBMParameters
+{
+    double m_vol;
+    static std::size_t GetNumberOfParameters()
+    {
+        return 1;
+    }
+};
+
+
 // AKA B&S
 class GBM : public Distribution
 {
 public:
-	GBM(double vol, double T) : Distribution(T), m_vol(vol), m_vol_2(m_vol * m_vol) {}
+	GBM(double vol, double T) : Distribution(T), m_parameters{vol}, m_vol_2(m_parameters.m_vol * m_parameters.m_vol)
+	{ }
 
 //    [[nodiscard]] std::complex<double> GetChar(double u, double x) const
 //    {
 //        return std::exp(-u * m_T * (1i * (m_r - m_q - 0.5 * m_vol_2) + 0.5 * m_vol_2 * u)) * std::exp(-1i * x * u);
 //    }
-    [[nodiscard]] virtual std::complex<double> GetNonXChar(double u) const override final
+    [[nodiscard]] std::complex<double> GetNonXChar(double u) const final
     {
         return std::exp(-u * m_T * 0.5 * m_vol_2 * (u - 1i));
     }
 
-	double m_vol;
-	double m_vol_2;
+    [[nodiscard]] std::vector<std::complex<double>> GetNonXCharGradient(double /*u*/) const final
+    {
+	    throw std::runtime_error("Not implemented.");
+    }
+    [[nodiscard]] std::size_t GetNumberOfParameters() const final
+    {
+	    return GBMParameters::GetNumberOfParameters();
+    }
+
+    GBMParameters m_parameters;
+    double m_vol_2;
 };
 
-/// Parameters of the heston distribution assuming
-/// dS = mu S dt TODO:
-/// dv =
+/// Parameters of the heston distribution
 struct HestonParameters
 {
 public:
-	HestonParameters(double k, double v_bar, double sigma, double rho, double v_0) : m_k(k), m_nu_bar(v_bar), m_sigma(sigma), m_rho(rho), m_nu(v_0) {}
+    HestonParameters(double k, double v_bar, double sigma, double rho, double v_0) : m_k(k), m_v_bar(v_bar), m_sigma(sigma), m_rho(rho), m_v0(v_0) {}
+
+    static std::size_t GetNumberOfParameters()
+    {
+        return 5;
+    }
+
 	double m_k;         // mean reversion rate
-	double m_nu_bar;    // long term variance
+	double m_v_bar;     // long term variance
 	double m_sigma;     // variance of volatility
 	double m_rho;       // correlation between spot and volatility
-	double m_nu;        // initial variance
+	double m_v0;        // initial variance
 };
+
+std::ostream& operator<<(std::ostream& out, HestonParameters const& heston_parameters);
 
 class HestonDistribution : public Distribution
 {
@@ -96,9 +134,14 @@ public:
 		return{xi, d, A1, A2, A, D};
 	}
 
-	[[nodiscard]] std::complex<double> GetNonXChar(double u) const override final
+	[[nodiscard]] std::complex<double> GetNonXChar(double u) const final
     {
         return GetCuiChar(u, m_T);
+    }
+
+    [[nodiscard]] std::vector<std::complex<double>> GetNonXCharGradient(double u) const final
+    {
+        return GetCuiGradient(u, m_T);
     }
 
 	[[nodiscard]] std::complex<double> GetCuiChar(double u, double tau) const
@@ -106,6 +149,89 @@ public:
         auto const& [k, v_bar, sigma, rho, v_0] = m_parameters;
         auto const& [xi, d, A1, A2, A, D] = GetHelperVariables(u, tau);
 	    return std::exp(- (k * v_bar * rho * tau * 1i * u) / sigma - A + (2 * k * v_bar * D) / (m_sigma_squared));
+    }
+
+    [[nodiscard]] std::vector<std::complex<double>> GetCuiGradient(double u, double T) const
+    {
+        auto const& [kappa, v_bar, sigma, rho, v0] = m_parameters;
+
+        std::complex<double> ui = 1i * u;
+        std::complex<double> u_squared = u * u;
+
+        // We need to evaluate everything at u1 = u - i and u2 = u.
+        double sigma_times_rho = sigma * rho; // TAG: PRECOMPUTE
+        std::complex<double> xi = kappa - sigma_times_rho * ui; // xi = kappa - sigma * rho * u * i
+        std::complex<double> m = ui + u_squared; // m = u * i + u^2;
+        std::complex<double> d = sqrt(pow(xi, 2) + m * m_sigma_squared); // d = sqrt(pow(xi,2) + m*pow(sigma,2));
+
+        // g = exp(-kappa * b * rho * T * u1 * i / sigma);
+        double kappa_v_bar_rho_T = kappa * v_bar * rho * T;  // TAG: PRECOMPUTE
+        double minus_kappa_v_bar_rho_T_over_sigma = -kappa_v_bar_rho_T / sigma;  // TAG: PRECOMPUTE
+        std::complex<double> g = exp(minus_kappa_v_bar_rho_T_over_sigma * ui);
+
+        // alp, calp, salp
+        double halft = 0.5 * T;
+        std::complex<double> alpha = d * halft;
+        std::complex<double> cosh_alpha = cosh(alpha);
+        std::complex<double> sinh_alpha = sinh(alpha);
+        std::complex<double> A2_times_v0 = d * cosh_alpha + xi * sinh_alpha;
+        std::complex<double> A1 = m * sinh_alpha;
+        std::complex<double> A_over_v0 = A1 / A2_times_v0;
+
+        // B = d * exp(kappa * T / 2) / (A2 * v0);
+        double exp_kappa_times_half_T = exp(kappa * halft); // exp(kappa * T / 2)
+        std::complex<double> B = d * exp_kappa_times_half_T / A2_times_v0;
+
+        double two_kappa_v_bar_over_sigma_squared = 2 * kappa * v_bar / m_sigma_squared;
+        std::complex<double> D = log(d) + (kappa - d) * halft - log((d + xi) * 0.5 + (d - xi) * 0.5 * exp(-d * T));
+
+        std::complex<double> H = xi * cosh_alpha + d * sinh_alpha;
+
+        // lnB = log(B);
+        std::complex<double> lnB = D;
+
+        // partial b: y3 = y1*(2*kappa*lnB/pow(sigma,2)-kappa*rho*T*u1*i/sigma);
+        double two_kappa_over_sigma_squared = two_kappa_v_bar_over_sigma_squared / v_bar;
+        double minus_kappa_rho_T_over_sigma = minus_kappa_v_bar_rho_T_over_sigma / v_bar;
+
+        std::complex<double> h_v_bar = two_kappa_over_sigma_squared * lnB + minus_kappa_rho_T_over_sigma * ui;
+
+        // partial rho:
+        double minus_kappa_v_bar_t_over_sigma = minus_kappa_v_bar_rho_T_over_sigma / rho; //-kappa * v_bar * T/sigma;
+
+        std::complex<double> sigma_ui_over_d = sigma * ui / d;
+        std::complex<double> pd_prho = -xi * sigma_ui_over_d;
+        std::complex<double> pA1_prho = m * cosh_alpha * halft * pd_prho;
+        std::complex<double> pA2_prho = -sigma_ui_over_d * H * (1.0 + xi * halft);
+        std::complex<double> pA_prho = (pA1_prho - A_over_v0 * pA2_prho) / A2_times_v0;
+        std::complex<double> pd_phrho_minus_pA2_prho_times_d_over_A2 = pd_prho - pA2_prho * d / A2_times_v0;
+        std::complex<double> pB_prho = exp_kappa_times_half_T / A2_times_v0 * pd_phrho_minus_pA2_prho_times_d_over_A2;
+        std::complex<double> h_rho = -v0 * pA_prho + two_kappa_v_bar_over_sigma_squared * pd_phrho_minus_pA2_prho_times_d_over_A2 / d + minus_kappa_v_bar_t_over_sigma * ui;
+
+        // partial kappa:
+        double v_bar_rho_T_over_sigma = v_bar * rho * T / sigma;
+        double two_v_bar_over_sigma_squared = two_kappa_v_bar_over_sigma_squared / kappa; // 2 * v_bar / sigma_squared;
+
+        std::complex<double> minus_one_over_sigma_ui = -1.0 / (sigma * ui);
+        std::complex<double> pB_pa = minus_one_over_sigma_ui * pB_prho + B * halft;
+        std::complex<double> h_kappa = -v0 * pA_prho * minus_one_over_sigma_ui + two_v_bar_over_sigma_squared * lnB + kappa * two_v_bar_over_sigma_squared * pB_pa / B - v_bar_rho_T_over_sigma * ui;
+
+        // partial sigma:
+        double rho_over_sigma = rho / sigma;
+        double four_kappa_v_bar_over_sigma_cubed = 4 * kappa * v_bar / pow(sigma, 3);
+        double kappa_v_bar_rho_T_over_sigma_squared = kappa_v_bar_rho_T / m_sigma_squared;
+        std::complex<double> pd_pc = (rho_over_sigma - 1.0 / xi) * pd_prho + sigma * u_squared / d;
+        std::complex<double> pA1_pc = m * cosh_alpha * halft * pd_pc;
+        std::complex<double> pA2_pc = rho_over_sigma * pA2_prho - 1.0 / ui * (2.0 / (T * xi) + 1.0) * pA1_prho + sigma * halft * A1;
+        std::complex<double> pA_pc = pA1_pc / A2_times_v0 - A_over_v0 / A2_times_v0 * pA2_pc;
+        std::complex<double> h_sigma = -v0 * pA_pc - four_kappa_v_bar_over_sigma_cubed * lnB + two_kappa_v_bar_over_sigma_squared / d * (pd_pc - d / A2_times_v0 * pA2_pc) + kappa_v_bar_rho_T_over_sigma_squared * ui;
+
+        // F = S * e^((r - q) * T)
+        // characteristic function: y1 = exp(i * log(F / S) * u) * exp(-A + 2 * kappa * b / pow(sigma, 2) * D) * g
+        // But we only care about the second exponential, the rest depends only on market parameters and will be computed separately.
+        std::complex<double> char_u = exp(-v0 * A_over_v0 + two_kappa_v_bar_over_sigma_squared * D) * g;
+
+        return {char_u * h_kappa, char_u * h_v_bar, char_u * h_sigma, char_u * h_rho, char_u * A_over_v0};
     }
 
 	// The original paper used:
@@ -150,32 +276,13 @@ public:
         std::complex<double> C = k * (r_plus * tau - 2.0 / m_sigma_squared * std::log((1.0 - g1 * exp_d_times_tau) / (1.0 - g1)));
 		return std::exp(C * v_bar + D * v_0);
 	}
-	//[[nodiscard]] std::tuple<std::complex<double>, std::complex<double>, std::complex<double>, std::complex<double>, std::complex<double>>
-	//	GetCharDvol0(double u, double x, double tau)
-	//{
-	//	auto const& [k, v_bar, sigma, rho, v_0] = m_parameters;
-	//	auto const& [xi, d, A1, A2, A, D] = GetHelperVariables(u, tau, m_parameters);
-	//	std::complex<double> char_val = GetChar(u, x, tau);
-	//	auto dchar_dv_0 = -A / v_0 * char_val;
-	//	auto dchar_dv_bar = (2.0 * k * D * char_val) / (sigma * sigma);
-	//	/// Variables for dchar_drho
-	//	auto dd_drho = -(xi * sigma * 1i * u) / d;
-	//	auto dA2_drho = -(sigma * 1i * (2.0 + xi * tau) * (xi * std::cosh(0.5 * d * tau) + d * std::sinh(0.5 * d * tau)) / (2 * d * v_0);
-	//	auto dB_drho = std::exp(k * tau * 0.5) / v_0 * (dd_drho / A2 - dA2_drho / (A2 * A2));
-	//	auto dA1_drho = -(1i * u * (u * u + 1i * u) * tau * xi * sigma) / (2 * d) * std::cosh(0.5 * d * tau);
-	//	auto dA_drho = dA1_drho / A2 - A / A2 * dA2_drho;
-	//	auto dchar_drho = char_val * (-dA_drho + 2 * k * v_bar / (sigma * sigma * d) * (dd_drho - d / A2 * dA2_drho) - k * v_bar * tau * 1i * u / sigma);
-	//	/// Variables for dchar_dk
-	//	auto dchar_dk = ;
-	//	/// Variable for dchar_dsigma
-	//	auto dd_dsigma = (rho / sigma - 1.0 / xi) * dd_drho + sigma * u * u / d;
 
-	//	auto dA1_dsigma = ;
-	//	auto dA2_dsigma = ;
-	//	auto dA_dsigma = ;
-	//	auto dchar_dsigma = ;
-	//}
+
+    [[nodiscard]] std::size_t GetNumberOfParameters() const final
+    {
+        return HestonParameters::GetNumberOfParameters();
+    }
 private:
-	HestonParameters m_parameters;
 	double m_sigma_squared;
+	HestonParameters m_parameters;
 };
