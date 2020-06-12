@@ -3,7 +3,7 @@
 
 #include "SWIFT/distributions.h"
 #include "SWIFT/swift.h"
-#include "SWIFT/c_m_calculators.h"
+#include "SWIFT/density_coefficients_calculators.h"
 
 BOOST_AUTO_TEST_SUITE(CNCalculatorsUT)
 

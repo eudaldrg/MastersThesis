@@ -7,13 +7,18 @@ inline double GetStandardCDF(double x)
 {
     return boost::math::cdf(boost::math::normal(0, 1), x);
 }
+
+inline double GetStandardPDF(double x)
+{
+    return boost::math::pdf(boost::math::normal(0, 1), x);
+}
 //inline double GetStandardPDF(double x)
 //{
 //	return boost::math::pdf(boost::math::normal(0, 1), x);
 //}
 
 /// https://quant.stackexchange.com/questions/15489/derivation-of-the-formulas-for-the-values-of-european-asset-or-nothing-and-cash
-inline double GetBSCashOrNothingPrice(double K, double F, double r, double years, double vol, double q = 0)
+inline double GetBSCallCashOrNothingPrice(double K, double F, double r, double years, double vol, double q = 0)
 {
     double vol_times_sqrt_years = vol * sqrt(years);
     double d1 = (std::log(F / K) + (r - q + 0.5 * vol * vol) * years) / vol_times_sqrt_years;
@@ -30,6 +35,77 @@ inline double GetBSEuropeanPrice(double K, double F, double r, double years, dou
     double d2 = d1 - vol_times_sqrt_years;
     return is_call ? F * inverse_exp_t_q * GetStandardCDF(d1) - inverse_exp_t_r * K * GetStandardCDF(d2)
                    : K * inverse_exp_t_r * GetStandardCDF(-d2) - F * inverse_exp_t_q * GetStandardCDF(-d1);
+}
+
+inline double GetBSEuropeanVega(double K, double F, double r, double years, double vol, double q)
+{
+    double inverse_exp_t_r = std::exp(-r * years);
+    double vol_times_sqrt_years = vol * sqrt(years);
+    double d1 = (std::log(F / K) + (r - q + 0.5 * vol * vol) * years) / vol_times_sqrt_years;
+    double d2 = d1 - vol_times_sqrt_years;
+    return K * inverse_exp_t_r * GetStandardPDF(d2) * sqrt(years);
+}
+
+inline double GetHestonEuropeanPriceCuiMyChar(HestonParameters const& parameters, double S, double K, double r, double q, double T)
+{
+    // x = log(S_T / K) = log(S_t * e^(rT) / K) = log(S_t / K) + rT
+    double x = Distribution::GetXCompression(S, K, r, q, T);
+
+    // Heston Pricing Formula: C = S * e^(-qT) * P1 - K * e^(-rT) * P2
+    // P1 = 0.5 + 1/pi * Int_0^inf(Re(e^(-i * u * log (K / S_0)) / iu * Char(u - i) / Char(i)) =    0.5 + Qv1 / pi
+    // P2 = 0.5 + 1/pi * Int_0^inf(Re(e^(-i * u * log (K / S_0)) / iu * Char(u)) =                  0.5 + Qv2 / pi
+
+    // If we compute K * C / K, we can avoid some computations in each of the quadratures by pre-computing S / K
+    // Heston Pricing Final Formula: C = K * 0.5 * (S / K * e^(-qT) - 1 * e^(-rT)) + e^(-rT) / PI *
+    //  Int_0^inf
+    //  [
+    //    Re( e^(iu * log S / K) * S / K / iu (Char(u - i) - Char(u))) du)
+    //  ]
+    HestonDistribution distribution(parameters, T);
+    auto F = [x, &distribution](double u)
+    {
+        std::complex<double> lhs = distribution.GetChar(-(u - 1i), x);
+        std::complex<double> rhs = distribution.GetChar(-u, x);
+        return ((lhs - rhs) / (1i * u)).real();
+    };
+
+    GaussLegendreIntegrator gauss_legendre_integrator(GaussLegendreIntegrator::GaussLegendreMode::Fast);
+    double quadrature_value = gauss_legendre_integrator.GetIntegral(F, 0, 200, 0.0);
+    double inverse_exponential_r_times_T = std::exp(-r * T);
+    double inverse_exponential_q_times_T = std::exp(-q * T);
+    return K * (0.5 * (inverse_exponential_q_times_T * S / K - inverse_exponential_r_times_T) + inverse_exponential_r_times_T / MY_PI * quadrature_value);
+}
+
+inline double GetBSEuropeanPriceCuiMyChar(GBMParameters const& parameters, double S, double K, double r, double q, double T)
+{
+    // x = log(S_T / K) = log(S_t * e^(rT) / K) = log(S_t / K) + rT
+    double x = Distribution::GetXCompression(S, K, r, q, T);
+
+    // Heston Pricing Formula: C = S * e^(-qT) * P1 - K * e^(-rT) * P2
+    // P1 = 0.5 + 1/pi * Int_0^inf(Re(e^(-i * u * log (K / S_0)) / iu * Char(u - i) / Char(i)) =    0.5 + Qv1 / pi
+    // P2 = 0.5 + 1/pi * Int_0^inf(Re(e^(-i * u * log (K / S_0)) / iu * Char(u)) =                  0.5 + Qv2 / pi
+
+    // If we compute K * C / K, we can avoid some computations in each of the quadratures by pre-computing S / K
+    // Heston Pricing Final Formula: C = K * 0.5 * (S / K * e^(-qT) - 1 * e^(-rT)) + e^(-rT) / PI *
+    //  Int_0^inf
+    //  [
+    //    Re((e^(i(u - i) * x) * Char(u - i) - e^(iux) * Char(u)) / iu) du)
+    //  ]
+    GBM distribution(parameters.m_vol, T);
+    auto F = [x, &distribution](double u)
+    {
+        std::complex<double> lhs = distribution.GetChar(-(u - 1i), x);
+        std::complex<double> rhs = distribution.GetChar(-u, x);
+        return ((lhs - rhs) / (1i * u)).real();
+    };
+
+    GaussLegendreIntegrator gauss_legendre_integrator(GaussLegendreIntegrator::GaussLegendreMode::Fast);
+    double quadrature_value = gauss_legendre_integrator.GetIntegral(F, 0, 200, 0.0);
+    double inverse_exponential_r_times_T = std::exp(-r * T);
+//    double inverse_exponential_q_times_T = std::exp(-q * T); // we assume 1
+//    return K * (0.5 * (inverse_exponential_q_times_T * S / K - inverse_exponential_r_times_T) + inverse_exponential_r_times_T / MY_PI * quadrature_value);
+    return K * (0.5 * (/*inverse_exponential_q_times_T * */ S / K - inverse_exponential_r_times_T) + inverse_exponential_r_times_T / MY_PI * quadrature_value);
+//    return K * (0.5 * (std::exp(x) - 1) + 1.0 / MY_PI * quadrature_value);
 }
 
 inline double GetHestonEuropeanPrice(HestonParameters const& parameters, double S, double K, double r, double T, double q)

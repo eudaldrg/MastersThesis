@@ -1,9 +1,9 @@
-#include <iostream>
+//#define BOOST_TEST_MODULE Suite_example
 #include <boost/test/unit_test.hpp>
+
+#include <iostream>
 #include <cstdlib>
-
 #include "FFTW3/include_fftw3.h"
-
 #include "SWIFT/my_math.h"
 
 BOOST_AUTO_TEST_SUITE(FFTW3UT)
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(CompareExactTest)
         in[i][1] = x[i].imag();
     }
     fftw_execute(p); /* repeat as needed */
-    std::vector<std::complex<double>> X = Swift::DFT(x);
+    std::vector<std::complex<double>> X = DFT(x);
 
     for (std::size_t i = 0; i < N; ++i)
     {

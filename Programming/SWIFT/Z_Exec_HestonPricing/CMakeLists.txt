@@ -9,4 +9,4 @@ project(${PROJECT_NAME})
 
 file(GLOB_RECURSE SOURCES *.cpp *.h *.ipp)
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT ${BOOST_STATIC_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT FFTW3 LEVMAR ${BOOST_STATIC_LIBRARIES})

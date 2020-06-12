@@ -4,8 +4,6 @@
 
 #include "SWIFT/distributions.h"
 
-
-
 BOOST_AUTO_TEST_SUITE(DistributionsUT)
 
 BOOST_AUTO_TEST_CASE(HestonCharUT)

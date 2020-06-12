@@ -348,8 +348,8 @@ tagMNJac GetHestonJacobianIntegrands(double u, double a, double b, double c, dou
     complex<double> D_M2 = log(d_M2) + (a - d_M2)*halft - log((d_M2 + kes_M2)*0.5 + (d_M1 - kes_M2)*0.5*exp(-d_M2*T));
     complex<double> D_N1 = log(d_N1) + (a - d_N1)*halft - log((d_N1 + kes_N1)*0.5 + (d_N1 - kes_N1)*0.5*exp(-d_N1*T));
     complex<double> D_N2 = log(d_N2) + (a - d_N2)*halft - log((d_N2 + kes_N2)*0.5 + (d_N2 - kes_N2)*0.5*exp(-d_N2*T));
-    
-    
+
+
     complex<double> y1M1 = exp(x0*_imPQ_M-v0*A_M1 + tmp3*D_M1) * g_M1;
     complex<double> y1N1 = exp(x0*_imPQ_N-v0*A_N1 + tmp3*D_N1) * g_N1;
     complex<double> y1M2 = exp(x0*imPQ_M-v0*A_M2 + tmp3*D_M2) * g_M2;
@@ -363,10 +363,10 @@ tagMNJac GetHestonJacobianIntegrands(double u, double a, double b, double c, dou
     complex<double> H_N2 = kes_N2*calp_N2 + d_N2*salp_N2;
 
     // lnB = log(B);
-    complex<double> lnB_M1 = D_M1; 
-    complex<double> lnB_M2 = D_M2; 
-    complex<double> lnB_N1 = D_N1; 
-    complex<double> lnB_N2 = D_N2; 
+    complex<double> lnB_M1 = D_M1;
+    complex<double> lnB_M2 = D_M2;
+    complex<double> lnB_N1 = D_N1;
+    complex<double> lnB_N2 = D_N2;
 
     // partial b: y3 = y1*(2*a*lnB/pow(c,2)-a*rho*T*u1*i/c);
     double tmp4 = tmp3/b;
@@ -451,7 +451,7 @@ tagMNJac GetHestonJacobianIntegrands(double u, double a, double b, double c, dou
     complex<double> pA2_pc = tmp*pA2_prho_M1 -one/_imPQ_M*(two/(T*kes_M1)+one)*pA1_prho_M1 + c*halft*A1_M1;
     complex<double> pA_pc = pA1_pc/A2_M1 - A_M1/A2_M1*pA2_pc;
     complex<double> y6M1 = -v0*pA_pc - tmp1 *lnB_M1 + tmp3/d_M1*(pd_pc - d_M1/A2_M1*pA2_pc) +
-          tmp2*_imPQ_M;
+                           tmp2*_imPQ_M;
 
     // M2
     pd_pc = (tmp - one/kes_M2)*pd_prho_M2 + c*msqr/d_M2;
@@ -459,7 +459,7 @@ tagMNJac GetHestonJacobianIntegrands(double u, double a, double b, double c, dou
     pA2_pc = tmp*pA2_prho_M2 - one/imPQ_M*(two/(T*kes_M2)+one)*pA1_prho_M2 + c*halft*A1_M2;
     pA_pc = pA1_pc/A2_M2 - A_M2/A2_M2*pA2_pc;
     complex<double> y6M2 = -v0*pA_pc - tmp1 *lnB_M2 + tmp3/d_M2*(pd_pc - d_M2/A2_M2*pA2_pc) +
-            tmp2*imPQ_M;
+                           tmp2*imPQ_M;
 
     // N1
     pd_pc = (tmp - one/kes_N1)*pd_prho_N1 +  c*_nsqr/d_N1;

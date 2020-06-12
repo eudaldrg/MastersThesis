@@ -8,14 +8,19 @@ message(${PROJECT_NAME})
 project(${PROJECT_NAME})
 
 set(SOURCES
-        HestonCalibrator.cpp
+        density_coefficients_calculators.cpp
+        density_coefficients_calculators.h
+        distributions.cpp
         distributions.h
-        option_contracts.cpp
-        option_contracts.h
-        swift.h
+#        HestonCalibrator.cpp
+        known_distribution_contract_combinations.h
         my_math.cpp
         my_math.h
-        known_distribution_contract_combinations.h c_m_calculators.cpp c_m_calculators.h swift.cpp distributions.cpp)
+        option_contracts.cpp
+        option_contracts.h
+        swift.cpp
+        swift.h
+        )
 
 # For any nested file, replace "/" by  "\"
 foreach(source ${SOURCES})
@@ -29,5 +34,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${BOOST_STATIC_LIBRARIES})
 
 add_subdirectory(UnitTests)
-add_subdirectory(Z_Exec_CuiExperiment)
-add_subdirectory(Z_Exec_CuiExperimentOriginal)
+#add_subdirectory(Z_Exec_CharReports)
+#add_subdirectory(Z_Exec_CuiExperiment)
+#add_subdirectory(Z_Exec_CuiExperimentOriginal)
+#add_subdirectory(Z_Exec_CallibrateBS)
+add_subdirectory(Z_Exec_OrtizExperimentOriginal)
+#add_subdirectory(Z_Exec_HestonPricing)

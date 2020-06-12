@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE UtilsUnitTests
+#define BOOST_TEST_MODULE FFTW3Tests
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_parameters.hpp>
@@ -8,7 +8,7 @@ using namespace boost::unit_test;
 struct Init {
     Init()
     {
-//        runtime_config::get<log_level>(runtime_config::btrt_log_level) = log_messages;
+        boost::unit_test::unit_test_log.set_threshold_level( boost::unit_test::log_messages);
     }
     ~Init()  = default;
 };

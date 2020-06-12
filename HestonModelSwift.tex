@@ -16,8 +16,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{bigfoot}
-\usepackage{algorithm}
-\usepackage[noend]{algpseudocode}
+%\usepackage{algorithm}
+%\usepackage[noend]{algpseudocode}
 \usepackage{epstopdf}
 \usepackage{vhistory}
 \usepackage{framed}
@@ -357,6 +357,8 @@ Heston also provided an expression of the price of an European option. In terms 
 
 Substituting these values into equation \ref{eq:option_valuation_final_form} , one can obtain an analytic equation to obtain the price of European Call options:
 
+% TODO: Change all this to log(F/K) instead of log(K/F)
+
 \begin{lem} Heston's pricing method.
 \begin{equation} \label{eq:heston_analytic}
 \begin{aligned}
@@ -365,6 +367,9 @@ C(\theta ; K, \tau)=& \frac{1}{2}\left(S_{t} e^{-q \tau}-K e^{-r \tau}\right) \\
 &\left.-K \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{S_0}}}{i u} \phi(\theta ; u, \tau)\right) \mathrm{d} u\right]
 \end{aligned}
 \end{equation}
+
+% TODO: We should split it into the part that depends on the forward F_{t,T} and K, and the other one and explain that they are quite independent. When valuating, we assume the price of the forward to be S_0 * exp of whatever. Just look at gatheral's book.
+% Also explain a bit that we assume the risk neutral drift to be r - q (though in our simulations we will set q = 0)
 
 , where $\phi$ is the characteristic function of the process followed by the logarithm of price of the underlying asset. The expression of this characteristic function is
 \begin{equation} \label{eq:char_heston}
@@ -418,6 +423,30 @@ These methods are too computationally expensive for real-time use as of now: Fer
 
 \end{itemize}
 
+\subsection{Alternative Expressions}
+
+\begin{lem}
+\begin{equation}
+\phi(\boldsymbol{\theta} ; u, \tau)=\exp \left\{i u \log \frac{F}{S_{0}}
++\frac{\kappa \bar{v}}{\sigma^{2}}\left[(\xi-d) \tau-2 \log \frac{1-g_{2} e^{-d \tau}}{1-g_{2}}\right]+\frac{v_{0}}{\sigma^{2}}(\xi-d) \frac{1-e^{-d \tau}}{1-g_{2} e^{-d \tau}}\right\} 
+\end{equation}
+, where $g_2 = \dfrac{1}{g_1}$
+\end{lem}
+
+\begin{lem}
+\begin{equation}
+\phi(\boldsymbol{\theta} ; u, \tau)=\exp \left(i u \log \frac{F}{S_{0}}-\frac{\kappa \bar{v} \rho \tau i u}{\sigma}-A\right) B^{2 \kappa \bar{v} / \sigma^{2}}
+\end{equation}
+
+, where
+\begin{equation}\begin{array}{l}
+A:=\frac{A_{1}}{A_{2}} \\
+A_{1}:=\left(u^{2}+i u\right) \sinh \frac{d \tau}{2} \\
+A_{2}:=\frac{d}{v_{0}} \cosh \frac{d \tau}{2}+\frac{\xi}{v_{0}} \sinh \frac{d \tau}{2} \\
+B:=\frac{d e^{\kappa \tau / 2}}{v_{0} A_{2}}
+\end{array}\end{equation}
+\end{lem}
+
 \section{Calibration as an optimization problem} \label{chap:optimization_problem}
 The goal of calibrating a model using market data, is to obtain model parameters that, when used for option valuation with an appropriate option valuation method, yield results similar to the real market option prices.
 
@@ -464,6 +493,33 @@ $\quad A_{2}:=\frac{d}{v_{0}} \cosh \frac{d \tau}{2}+\frac{\xi}{v_{0}} \sinh \fr
 B:=\dfrac{de^{\kappa \tau / 2}}{v_0A_2}
 \end{equation}
 
+
+\subsection{Gradient Function}
+
+\begin{thm} Gradient Function of an European Heston Option
+\begin{equation}
+\begin{aligned}
+\nabla C(\boldsymbol{\theta} ; K, \tau)=\frac{e^{-r \tau}}{\pi} &\left[\int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{s_{0}}}}{i u} \nabla \phi(\boldsymbol{\theta} ; u-i, \tau)\right) \mathrm{d} u\right.\\
+-&\left.K \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{s_{0}}}}{i u} \nabla \phi(\boldsymbol{\theta} ; u, \tau)\right) \mathrm{d} u\right]
+\end{aligned}
+\end{equation}
+, where $\nabla \phi(\boldsymbol{\theta}; u, \tau) = \boldsymbol{h}(u) \phi(\boldsymbol{\theta}; u, \tau)$ and $\boldsymbol{h}(u) = [h_{v_0}(u), h_{\overline{v}}(u), h_\sigma(u), h_\kappa(u), h_\rho(u)]^T$
+
+\begin{equation}
+\begin{array}{l}
+h_{v_0}(u)=-\frac{A}{v_{0}} \\
+h_{\overline{v}}(u)=\frac{2 \kappa}{\sigma^{2}} D-\frac{\kappa \rho \tau i u}{\sigma} \\
+h_{\sigma}(u)=-\frac{\partial A}{\partial \rho}+\frac{2 \kappa \bar{v}}{\sigma^{2} d}\left(\frac{\partial d}{\partial \rho}-\frac{d}{A_{2}} \frac{\partial A_{2}}{\partial \rho}\right)-\frac{\kappa \bar{v} \tau i u}{\sigma} \\
+h_{\kappa}(u)=\frac{1}{\sigma i u} \frac{\partial A}{\partial \rho}+\frac{2 \bar{v}}{\sigma^{2}} D+\frac{2 \kappa \bar{v}}{\sigma^{2} B} \frac{\partial B}{\partial \kappa}-\frac{\bar{v} \rho \tau i u}{\sigma} \\
+h_{\rho}(u)=-\frac{\partial A}{\partial \sigma}-\frac{4 \kappa \bar{v}}{\sigma^{3}} D+\frac{2 \kappa \bar{v}}{\sigma^{2} d}\left(\frac{\partial d}{\partial \sigma}-\frac{d}{A_{2}} \frac{\partial A_{2}}{\partial \sigma}\right)+\frac{\kappa \bar{v} \rho \tau i u}{\sigma^{2}}
+\end{array}
+\end{equation}
+
+\end{thm}
+
+\subsubsection{Fast Calculation of integrands}
+All integrands are of the form: % PAGE 6, right column.
+
 \section{Multi Resolution Analysis and Shannon Wavelets}
 
 \subsection{Multi Resolution Analysis} \label{def:mra}
@@ -493,37 +549,50 @@ Then, if $\phi$ and $V_m$ fulfill the conditions above, we say that $\phi$ is th
 
 One of the important implications of obtaining a father wavelet and its MRA is that another wavelet family can be obtained from it, which will be a basis of $L^2(\R)$. In order to do that, let's consider the set of subspaces $W_m$ such that $V_{m+1} = V_m \oplus W_m$. Then $L^2(\R) = \sum_m{\oplus W_m}$ and there exists a function $\psi \in W_0$ (called mother wavelet) that generates an orthonormal basis of $L^2(\R)$ \cite{dau92} by defining the wavelet functions:
 $$ \psi_{m, k} = 2^{m/2}\psi(2^m x - k)$$
-. Note that each $\{W_{m,k}\}_{k \in \Z}$ gives an orthonormal basis of $W_m$, and $\{W_{m_k}\}_{m\in [-\infty, m-1], k \in \Z}$ is an orthonormal basis of $V_m$. So for any $m \in \Z$ we can define a projection mapping $P_m$ from any function $f \in L^2(\R)$ into $V_m$:
-$$ P_m f(x) = \sum_{j = -\infty}^{m-1} \sum_{k \in \Z} d_{j,k} \psi_{j, k}(x) = \sum_{k \in \Z} c_{m, k} \phi_{m, k}(x)$$
-, where $d_{j, k} = \left\lbrace f,\psi_{j, k}\right\rbrace$, $c_{m, k} = \left\lbrace f,\phi_{m, k}\right\rbrace$, and $\left\lbrace f,g\right\rbrace = \int_\R f(x) \overline{g(x)} dx$. Further, this projection converges in the $L^2$ norm as m tends to infinity \cite{tour}.
+. Note that each $\{W_{m,k}\}_{k \in \Z}$ gives an orthonormal basis of $W_m$, and $\{W_{m_k}\}_{m\in [-\infty, m-1], k \in \Z}$ is an orthonormal basis of $V_m$. So for any $m \in \Z$ we can define 
+\begin{definition} \label{def:wavelet_projection}
+\textbf{Wavelet Projection:} $P_m: L^2(\R) \rightarrow V_m$ is the projection from any function $f \in L^2(\R)$ into $V_m$:
+\begin{equation} 
+P_m f(x) = \sum_{j = -\infty}^{m-1} \sum_{k \in \Z} d_{j,k} \psi_{j, k}(x) = \sum_{k \in \Z} c_{m, k} \phi_{m, k}(x)
+\end{equation}
+
+, where $d_{j, k} = \left\langle f,\psi_{j, k}\right\rangle$, $c_{m, k} = \left\langle f,\phi_{m, k}\right\rangle$, and $\left\langle f,g\right\rangle = \int_\R f(x) \overline{g(x)} dx$. Further, this projection converges in the $L^2$ norm as m tends to infinity \cite{tour}.
+\end{definition}
 
 \subsection{Shannon Wavelets}
 Claude Shannon introduced the usage of the cardinal sine function for information modeling \cite{sha49}:
 $$ sinc(x) := \left\{ \begin{array}{rcl} \dfrac{sin(\pi x)}{\pi x} & \mbox{for} & x \neq 0 \\ 1 & \mbox{for} & x = 0 \end{array}\right.$$
 
 This function serves as the father wavelet from which we obtain the families $\phi_{m, k}$ and $\psi_{m_k}$:
-$$\begin{array}{rcl}
-\phi_{m,k}(x) = 2^{m/2} \dfrac{sin(\pi (2^m x - k))}{\pi (2^m x - k)}, & k \in \Z
-\end{array}$$
-$$\begin{array}{rcl}
-\psi_{m,k}(x) = 2^{m/2} \dfrac{sin(\pi (2^m x - k - 1/2)) - sin(2 \pi (2^m x - k - 1/2))}{\pi (2^m x - k - 1/2)}, & k \in \Z
-\end{array}$$
+\begin{equation}
+\begin{array}{rcl}
+\phi_{m,k}(x) = 2^{m/2} sinc(\pi (2^m x - k)), & k \in \Z
+\end{array}
+\end{equation}
+\begin{equation}
+\begin{array}{rcl}
+\psi_{m,k}(x) = 2^{m/2} \left( sinc(\pi (2^m x - k - 1/2)) - \dfrac{sin(2 \pi (2^m x - k - 1/2))}{\pi (2^m x - k - 1/2)} \right), & k \in \Z
+\end{array}
+\end{equation}
 
-Shannon wavelets are interesting in part because while they have a slow decay in time domain, they have a simple expression and sharp compact support in the frequency domain.
+One of the interesting properties of Shannon wavelets it that they have both a slow decay in time domain and a simple expression and sharp compact support in the frequency domain.
+\begin{equation} \label{eq:sharp_freq}
+\begin{array}{rcl}
+\hat{\phi}_{m,k}(w) = \dfrac{e^{-i k/2^m w}}{2^{m/2}}rect \left(\dfrac{w}{2^{m+1}\pi}\right), & k \in \Z
+\end{array}
+\end{equation}
+\begin{equation}
+\begin{array}{rcl}
+\hat{\psi}_{m,k}(w) = -\dfrac{e^{-i \dfrac{k + 1/2}{2^m} w}}{2^{m/2}} \left(rect \left(\dfrac{w}{2^{m}\pi} - \dfrac{3}{2}\right) + rect \left(-\dfrac{w}{2^{m}\pi} - \dfrac{3}{2}\right) \right), & k \in \Z
+\end{array}
+\end{equation}
 
-$$\begin{array}{rcl}
-\hat{\phi}_{m,k}(x) = \dfrac{e^{-i k/2^m w}}{2^{m/2}}rect \left(\dfrac{w}{2^{m+1}\pi}\right), & k \in \Z
-\end{array}$$
-$$\begin{array}{rcl}
-\hat{\psi}_{m,k}(x) = -\dfrac{e^{-i \dfrac{k + 1/2}{2^m} w}}{2^{m/2}} \left(rect \left(\dfrac{w}{2^{m}\pi} - \dfrac{3}{2}\right) + rect \left(-\dfrac{w}{2^{m}\pi} - \dfrac{3}{2}\right) \right), & k \in \Z
-\end{array}$$
-
-When using Shannon Wavelets to approximate a function with a truncated wavelet expansion \cite{mar17} shows a bound for the projection error into $V_m$, by using concepts of band-limited functions.
+When using Shannon Wavelets to approximate a function with a truncated wavelet expansion \cite{mar17} shows a bound for the projection error into $V_m$, by using concepts of band-limited functions:
 
 \begin{definition} A function f is called band-limited if $\exists B \in \R^+$, with $B < \infty$ such that
-$$
+\begin{equation}
 f(x) = \dfrac{1}{2\pi} \int_{-B \pi}^{B \pi} \hat{f}(\omega) e^{i\omega x}d\omega 
-$$
+\end{equation}
 , that is, the support of $\hat{f}$ is contained in the interval $[-B, B]$. The parameter B is referred to as the bandwidth of f.
 \end{definition}
 
@@ -535,34 +604,129 @@ The nested subspaces of a Shannon MRA can be expressed in terms of band-limited 
 Combining this lemma with the $L^2$ convergence of the projections $P_m$ of $f$ into $V_m$ yields the following corollary \cite{mar17}
 
 \begin{cor} The orthogonal projection $P_m$ of a Shannon MRA is equivalent to:
-$$
+\begin{equation}
 P_m f(x) = \dfrac{1}{2 \pi} \int_{-2^m \pi}^{2^m \pi} \hat{f}(\omega) e^{i \omega x} d \omega
-$$
+\end{equation}
 \end{cor}
 
 Which, in turn, can be used to derive the following bound to the error of the orthogonal projection.
 
 \begin{definition}Given $f \in L^2(\R)$, let $H(\xi)$ be:
-$$
+\begin{equation}
 H(\xi) := \dfrac{1}{2 \pi} \int_{|\omega| > \xi}\left|\hat{f}(\omega)\right| d\omega
-$$
+\end{equation}
 , the normalized mass of the two-side tails of $\hat{f}$ defined by $\xi$.
 \end{definition}
 
 \begin{lem} Let $\epsilon_m(x) := f(x) - P_m f(x)$ (the pointwise approximation error due to the projection of f into $V_m$). Then $|\epsilon_m(x)| \leq H(2^m \pi)$ \cite{mar17}
 \end{lem}
 
+
+\subsection{Sinc Integral}
+Shannon MRA and SWIFT require solving integrals of the form $\int_{\R} f(x) g(sinc(x)) dx$. In particular, when one wants to compute the density coefficients $c_{m,k}$ of equation \ref{def:wavelet_projection}, or as will be seen in section \ref{subsec:payoff_coefficients}, for the payoff coefficients computation, one needs to solve integrals of the form $\int_{\R} f(x) \overline{\phi(x)} dx$ and $\int_{\R} f(x) \phi(x) dx$ respectively.
+
+The simplest situation is to compute the sinc integral $Si(t) = \int_0^t{sinc(x) dx}$, but even for this case there is no closed form for the integral. 
+
+There are two commonly used approaches as to how to numerically approximate these integrals, and their equivalency wa. 
+
+\begin{itemize}
+\item{ \textbf{Coefficients via Parseval's Theorem: } This approach, shown in \cite{ort16} uses the fact that the $\phi_{m,k}$ has a very small support in the frequency domain (as shown in equation \ref{eq:sharp_freq}) together with Parseval's theorem, 
+$\langle f, g \rangle = \dfrac{1}{2 \pi}\langle \hat{f}, \hat{g} \rangle$. As the coefficients will be real numbers, we can take $\langle f, g \rangle = Re \left( \langle f, g \rangle \right) = Re \left( \dfrac{1}{2 \pi}\langle \hat{f}, \hat{g} \rangle \right)$. Entering the real part operator inside the integral sign and applying the change of variable $t = \dfrac{u}{2^{m+1} \pi}$ results in expression:
+\begin{equation}
+c_{m,k} = 2^{m/2} \int_{-1/2}^{1/2} Re \left(\hat{f}(2^{m+1} \pi t) e^{i2\pi k t} \right) dt
+\end{equation} 
+}
+\item { \textbf{Coefficients via Sinc approximations: }
+An equivalent expression of the sinc function was presented in \cite{ort16} as a cosine expansion using Vieta's formula: 
+\begin{equation}
+sinc(x) = \prod_{j = 1}^{\infty} cos \left( \dfrac{\pi x}{r^j} \right)
+\end{equation}
+This cosine expansion was then truncated and converted to a summation via the cosine product-to-sum-identity
+\begin{equation}
+\prod_{j=1}^{J} \cos \left(\frac{\pi x}{2^{j}}\right)=\frac{1}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \cos \left(\frac{2 j-1}{2^{J}} \pi x\right)
+\end{equation}
+obtaining the first expression for the vieta coefficients $c_{m,k}^v$
+\begin{equation}
+c_{m,k} \approx c_{m, k}^{v}= \frac{2^{m / 2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \int_{\mathbb{R}} f(x) \cos \left(\frac{2 j-1}{2^{J}} \pi\left(2^{m} x-k\right)\right) d x
+\end{equation}
+Finally, $f(x)$ would be replaced in the integral by defining $c_{m,k}^{v} = Re \left( c_{m,k} \right)$, where
+\begin{equation}
+ Re(\int_{\R} Re \left( f(x) e^{- uix} \right) dx = Re \left( \hat{f}(u) \right)
+\end{equation}
+Ending up with
+
+This expression was revisited in \cite{mar17} as a particular case of expressing the sinc as 
+
+}
+\end{itemize}
+
+
 \section{SWIFT}
+
+The Shannon Wavelets Inverse Fourier Technique (SWIFT) combines the Shannon Wavelets and Multiresolution Analysis concepts with equation \ref{eq:integral_option_valuation} to provide a fast approximation to the value of a specific option v(x, t).
+
+The overall approximation can be summarized, as in \cite{mar17}, by a set of consecutive approximation steps. The error related to each of these approximations will be analyzed in section \ref{subsec:error_price}.
+
+\begin{itemize} \label{swift_steps}
+\item \textbf{Wavelet Projection:} f is substituted by its Shannon wavelet projection at scale $m \in \Z$. By lemma \ref{def:wavelet_projection} this can be stated as:
+\begin{equation} \label{step:wavelet_projection}
+f(y|x) \approx f_1(y|x) := P_mf(y|x) = \sum_{k \in \Z} c_{m, k}(x) \phi_{m,k}(y)
+\end{equation}
+, with $c_{m, k}(x):=\langle f(\cdot | x), \phi_{m,k} \rangle$
+\item \textbf{Series Truncation: } The set of values of k partaking the sum \ref{step:wavelet_projection} is reduced to a finite interval $[k1, k2]$
+\begin{equation} \label{step:series_truncation}
+f_1(y|x) \approx f_2(y|x) = \sum_{k = k1}^{k2} c_{m,k}(x)\phi_{m,k}(y)
+\end{equation}
+It is important to notice that the first approximation lets us express: 
+\begin{equation}
+f(2^{-m}k|x) \approx f_1(2^{-m}k|x) = 2^{m/2} c_{m,k}(x)
+\end{equation}
+, which quickly justifies that, for any given x, the density coefficients vanish as $|k|$ increases, because f vanishes at the queues. It is also worth noting that increasing m will result in this mapping being less favorable. That is, for each k, $c_{m,k}$ will be bounded by a point closer to the center of the density function, potentially requiring to increase the interval $[k1, k2]$.
+\begin{remark}
+From this point onward a symmetric interval $[1 - \kappa, \kappa]$ will be considered both for convenience and for consistency with the code implementation.
+\end{remark}
+\item \textbf{Density Coefficients Approximation: }
+
+\item \textbf{Payoff Coefficients Approximation: }
+\end{itemize}
 
 Given a certain stochastic model for the underlying log returns price evolution over time and its density function f (equation \ref{eq:integral_option_valuation}) chosen to valuate the options and its correspondent characteristic function $\hat{f}(w) = \int_{\R} e^{-iwx} f(x) dx$, Shannon Wavelets Inverse Fourier Technique combines Shannon Wavelets and $\hat{f}$ to truncate f at a fixed approximation level m and provide a fast way to obtain the Fourier coefficients and recover the time domain ones through fast Fourier transform. (TODO: Cite)
 
 \subsection{Coefficients via Vieta's formula}
-$$
-c_{m,k} \approx c^*_{m,k} = \dfrac{2^{m/2}}{2^{J-1} \sum_{j=1}^{2^{J-1}}} \R \left[\hat{f}\left(\dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
-$$
+\begin{equation}
+c_{m,k}(\boldsymbol{\theta}; x) \approx c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \R \left[\hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
+\end{equation}
 
-\subsection{Sinc Integral}
-SWIFT works with the cardinal sinc function and it needs to evaluate it's integral $Si(t) = \int_0^t{sinc(x) dx}$ for which there's no closed form. This problem was addressed in \cite{abr15_1, abr15_2} by using a combination of Vieta's formula and a cosine product-to-sum identity, resulting in an approximation by an incomplete cosine expansion
+As shown in \cite{ort16}, one can take the set $\{X_{m,k}\}$
+
+\subsection{Payoff Coefficients Fast Approximation} \label{subsec:payoff_coefficients}
+
+\subsection{Price Approximation Error Analysis} \label{subsec:error_price}
+
+asfd
+
+\subsection{Option Price}
+
+\begin{lem} Option Price
+\begin{equation}
+v(\boldsymbol{\theta}; x, \tau) \approx v_1(\boldsymbol{\theta}; x, \tau) = e^{-r \tau} \int_{I_m} v(y, 0) f_m(\boldsymbol{\theta}; y|x) dy = e^{-r \tau} \sum_{k = k_1}^{k_2} c_{m, k}(\boldsymbol{\theta}; x) \cdot V_{m, k}
+\end{equation}
+, where $$V_{m, k} = \int_{I_m} v(y, 0) \phi_{m,k}(y)dy$$
+\end{lem}
+
+\subsection{Option Price Gradient}
+
+\begin{lem} Option Price Gradient
+\begin{equation}
+\nabla_{\boldsymbol{\theta}} v(\boldsymbol{\theta}; x, \tau)  \approx v_1(\boldsymbol{\theta}; x, \tau) = e^{-r \tau} \int_{I_m} v(y, 0) \nabla_{\boldsymbol{\theta}} f_m(y|x) dy = e^{-r \tau} \sum_{k = k_1}^{k_2} \nabla_{\boldsymbol{\theta}} c_{m, k}(\boldsymbol{\theta}; x) \cdot V_{m, k}
+\end{equation}
+and
+\begin{equation}
+\nabla_{\boldsymbol{\theta}} c_{m,k}(\boldsymbol{\theta}; x) \approx \nabla_{\boldsymbol{\theta}} c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1} \sum_{j=1}^{2^{J-1}}} \R \left[ 
+\boldsymbol{h} \cdot \hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
+\end{equation}
+, where $\boldsymbol{h}$
+\end{lem}
 
 
 \section{Formulation of the study}

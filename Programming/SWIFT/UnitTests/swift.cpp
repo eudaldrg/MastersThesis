@@ -8,7 +8,7 @@ BOOST_AUTO_TEST_SUITE(SwiftUT)
 
 BOOST_AUTO_TEST_CASE(SIApproxTes)
 {
-    std::size_t j_bar = 14;
+    std::size_t j_bar = 13;
 
     std::vector<std::pair<double, double>> test_results = {
         {1, 0.5894898722360836351},
@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(SIApproxTes)
     };
 
     for (auto const& [x, exact] : test_results)
-        BOOST_CHECK_CLOSE(Sign(x) * SIApprox(std::abs(x), j_bar), exact, MATH_EPSILON);
+        BOOST_CHECK_CLOSE(Sign(x) * SIApprox(std::abs(x), 1U << j_bar), exact, MATH_EPSILON);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

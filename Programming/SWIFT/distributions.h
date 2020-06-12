@@ -8,14 +8,16 @@ public:
     explicit Distribution(double T) : m_T(T)
     { }
     virtual ~Distribution() = default;
-    [[nodiscard]] virtual std::complex<double> GetNonXChar(double u) const = 0;
-    [[nodiscard]] std::complex<double> GetChar(double u, double x) const
+    [[nodiscard]] virtual std::complex<double> GetNonXChar(std::complex<double> u) const = 0;
+    [[nodiscard]] std::complex<double> GetChar(std::complex<double> u, double x) const
     {
-        return GetNonXChar(u) * GetCharPositionFactor(x, u);
+        std::complex<double> non_x = GetNonXChar(u);
+        std::complex<double> x_factor = GetCharPositionFactor(x, u);
+        return non_x * x_factor;
     }
-    [[nodiscard]] virtual std::vector<std::complex<double>> GetNonXCharGradient(double u) const = 0;
+    [[nodiscard]] virtual std::vector<std::complex<double>> GetNonXCharGradient(std::complex<double> u) const = 0;
 
-    [[nodiscard]] std::vector<std::complex<double>> GetCharGradient(double u, double x) const
+    [[nodiscard]] std::vector<std::complex<double>> GetCharGradient(std::complex<double> u, double x) const
     {
         std::vector<std::complex<double>> result_components = GetNonXCharGradient(u);
         std::complex<double> x_factor = GetCharPositionFactor(x, u);
@@ -24,19 +26,40 @@ public:
         return result_components;
     }
 
+    [[nodiscard]] virtual double GetFirstCumulant() const = 0;
+    [[nodiscard]] virtual double GetSecondCumulant() const = 0;
+    [[nodiscard]] virtual double GetFourthCumulant() const = 0;
+    [[nodiscard]] double GetDomainTruncationInitialValue() const
+    {
+        double c1 = GetFirstCumulant();
+        double c2 = GetSecondCumulant();
+        double c4 = GetFourthCumulant();
+        return c1 + 6 * std::sqrt(c2 + std::sqrt(c4));
+    }
+
+    [[nodiscard]] virtual double GetErrorInTermsOfM(std::size_t m, double x) const
+    {
+        double two_to_the_m = 1U << m;
+        const int convergence_coeff = 2;
+        return std::pow(two_to_the_m * MY_PI, 1 - convergence_coeff) / (2 * MY_PI * convergence_coeff * m_T)
+            * (std::norm(GetChar(-two_to_the_m * MY_PI, x)) + std::norm(GetChar(two_to_the_m * MY_PI, x)));
+    }
+
     // The overall char is regular char * this.
     // x = log(F_{t, T}/K) = log(S_t * exp((r - q) * tau) / K) = (r - q) * tau * log (S_t / K)
-    static std::complex<double> GetCharPositionFactor(double x, double u)
+
+    ///// CAREFUL. If you take S / K it's positive, but K / S negative
+    static std::complex<double> GetCharPositionFactor(double x, std::complex<double> u)
     {
         return std::exp(-1i * x * u);
     }
 
     virtual std::size_t GetNumberOfParameters() const = 0;
 
-    static double GetXCompression(double future, double strike, double r, double q, double tau)
+    static double GetXCompression(double S, double K, double r, double q, double tau)
     {
-//    return std::log(future * std::exp((r - q) * tau) / strike);
-        return (r - q) * tau + std::log(future / strike);
+//    return std::log(S * std::exp((r - q) * tau) / K);
+        return (r - q) * tau + std::log(S / K);
     }
 
     double m_T;
@@ -61,21 +84,60 @@ public:
 
 //    [[nodiscard]] std::complex<double> GetChar(double u, double x) const
 //    {
-//        return std::exp(-u * m_T * (1i * (m_r - m_q - 0.5 * m_vol_2) + 0.5 * m_vol_2 * u)) * std::exp(-1i * x * u);
+//        return std::exp(-u * m_T * (i * (m_r - m_q - 0.5 * m_vol_2) + 0.5 * m_vol_2 * u)) * std::exp(-1i * x * u);
 //    }
-    [[nodiscard]] std::complex<double> GetNonXChar(double u) const final
+    [[nodiscard]] std::complex<double> GetNonXChar(std::complex<double> u) const final
     {
-        return std::exp(-u * m_T * 0.5 * m_vol_2 * (u - 1i));
+        return std::exp(-m_T * 0.5 * m_vol_2 * u * (u - 1i));
     }
 
-    [[nodiscard]] std::vector<std::complex<double>> GetNonXCharGradient(double /*u*/) const final
+    [[nodiscard]] std::vector<std::complex<double>> GetNonXCharGradient(std::complex<double> u) const final
     {
+	    return {-m_parameters.m_vol * m_T * (u * (u - 1i)) * GetNonXChar(u)};
 	    throw std::runtime_error("Not implemented.");
     }
     [[nodiscard]] std::size_t GetNumberOfParameters() const final
     {
 	    return GBMParameters::GetNumberOfParameters();
     }
+
+    [[nodiscard]] double GetFirstCumulant() const final { return 1; }
+    [[nodiscard]] double GetSecondCumulant() const final { return 1; }
+    [[nodiscard]] double GetFourthCumulant() const final { return 1; }
+
+    GBMParameters m_parameters;
+    double m_vol_2;
+};
+
+// AKA B&S
+class GBMDerivative : public Distribution
+{
+public:
+    GBMDerivative(double vol, double T) : Distribution(T), m_parameters{vol}, m_vol_2(m_parameters.m_vol * m_parameters.m_vol)
+    { }
+
+//    [[nodiscard]] std::complex<double> GetChar(double u, double x) const
+//    {
+//        return std::exp(-u * m_T * (i * (m_r - m_q - 0.5 * m_vol_2) + 0.5 * m_vol_2 * u)) * std::exp(-1i * x * u);
+//    }
+    [[nodiscard]] std::complex<double> GetNonXChar(std::complex<double> u) const final
+    {
+        return -m_parameters.m_vol * m_T * (u * (u - 1i)) * std::exp(-m_T * 0.5 * m_vol_2 * u * (u - 1i));
+    }
+
+    [[nodiscard]] std::vector<std::complex<double>> GetNonXCharGradient(std::complex<double> /*u*/) const final
+    {
+//        return {GetNonXChar(u)};
+        throw std::runtime_error("Not implemented.");
+    }
+    [[nodiscard]] std::size_t GetNumberOfParameters() const final
+    {
+        return GBMParameters::GetNumberOfParameters();
+    }
+
+    [[nodiscard]] double GetFirstCumulant() const final { return 1; }
+    [[nodiscard]] double GetSecondCumulant() const final { return 1; }
+    [[nodiscard]] double GetFourthCumulant() const final { return 1; }
 
     GBMParameters m_parameters;
     double m_vol_2;
@@ -120,7 +182,7 @@ public:
 		std::complex<double> D;
 	};
 
-	HelperVariables GetHelperVariables(double u, double tau) const
+	HelperVariables GetHelperVariables(std::complex<double> u, double tau) const
 	{
 		auto const& [k, v_bar, sigma, rho, v_0] = m_parameters;
 		std::complex<double> xi = k - sigma * rho * u * 1i;
@@ -134,24 +196,79 @@ public:
 		return{xi, d, A1, A2, A, D};
 	}
 
-	[[nodiscard]] std::complex<double> GetNonXChar(double u) const final
+	[[nodiscard]] std::complex<double> GetNonXChar(std::complex<double> u) const final
     {
-        return GetCuiChar(u, m_T);
+        u = -u; //TODO: Fix properly later on.
+        return GetCuiCharExplicit(u, m_T);
+//        return GetGatheralChar(u, m_T);
+//        return GetHestonChar(u, m_T);
     }
 
-    [[nodiscard]] std::vector<std::complex<double>> GetNonXCharGradient(double u) const final
+    [[nodiscard]] std::vector<std::complex<double>> GetNonXCharGradient(std::complex<double> u) const final
     {
         return GetCuiGradient(u, m_T);
     }
 
-	[[nodiscard]] std::complex<double> GetCuiChar(double u, double tau) const
+	[[nodiscard]] std::complex<double> GetCuiChar(std::complex<double> u, double tau) const
     {
         auto const& [k, v_bar, sigma, rho, v_0] = m_parameters;
         auto const& [xi, d, A1, A2, A, D] = GetHelperVariables(u, tau);
 	    return std::exp(- (k * v_bar * rho * tau * 1i * u) / sigma - A + (2 * k * v_bar * D) / (m_sigma_squared));
     }
 
-    [[nodiscard]] std::vector<std::complex<double>> GetCuiGradient(double u, double T) const
+    [[nodiscard]] std::complex<double> GetCuiCharExplicit(std::complex<double> u, double T) const
+    {
+        auto const& [kappa, v_bar, sigma, rho, v0] = m_parameters;
+
+        std::complex<double> ui = 1i * u;
+        std::complex<double> u_squared = u * u;
+
+        // We need to evaluate everything at u1 = u - i and u2 = u.
+        double sigma_times_rho = sigma * rho; // TAG: PRECOMPUTE
+        std::complex<double> xi = kappa - sigma_times_rho * ui; // xi = kappa - sigma * rho * u * i
+        std::complex<double> m = ui + u_squared; // m = u * i + u^2;
+        std::complex<double> d = sqrt(pow(xi, 2) + m * m_sigma_squared); // d = sqrt(pow(xi,2) + m*pow(sigma,2));
+
+        // g = exp(-kappa * b * rho * T * u * i / sigma);
+        double kappa_v_bar_rho_T = kappa * v_bar * rho * T;  // TAG: PRECOMPUTE
+        double minus_kappa_v_bar_rho_T_over_sigma = -kappa_v_bar_rho_T / sigma;  // TAG: PRECOMPUTE
+        std::complex<double> g = exp(minus_kappa_v_bar_rho_T_over_sigma * ui);
+
+        // alp, calp, salp
+        double halft = 0.5 * T;
+        std::complex<double> alpha = d * halft;
+        std::complex<double> cosh_alpha = cosh(alpha);
+        std::complex<double> sinh_alpha = sinh(alpha);
+        std::complex<double> A2_times_v0 = d * cosh_alpha + xi * sinh_alpha;
+        std::complex<double> A1 = m * sinh_alpha;
+        std::complex<double> A_over_v0 = A1 / A2_times_v0;
+
+        double two_kappa_v_bar_over_sigma_squared = 2 * kappa * v_bar / m_sigma_squared;
+        std::complex<double> D = log(d) + (kappa - d) * halft - log((d + xi) * 0.5 + (d - xi) * 0.5 * exp(-d * T));
+
+        std::complex<double> char_u = exp(-v0 * A_over_v0 + two_kappa_v_bar_over_sigma_squared * D) * g;
+        return char_u;
+    }
+
+    // TODO: CUI WAS USING THE FUCKING CHAR OF -x instead of CHAR OF x
+    std::complex<double> chf(double u, double T)
+    {
+        auto const& [kappa, vmean, sigma, rho, v0] = m_parameters;
+
+        std::complex<double> ui = 1i * u;
+        std::complex<double> u_squared = u * u;
+
+        std::complex<double> xi = kappa + sigma * rho * ui;
+        std::complex<double> m = -ui + u_squared;
+        std::complex<double> D = std::sqrt(xi * xi + m * m_sigma_squared);
+        std::complex<double> G = (kappa + rho * sigma * ui - D) / (kappa + rho * sigma * u * 1i + D);
+        std::complex<double> e1= (v0 / pow(sigma, 2)) * ((1. - std::exp(-D * T)) / (1. - G * std::exp(-D * T))) * (kappa + rho * sigma * u * 1i - D);
+        std::complex<double> e2= ((kappa * vmean) / std::pow(sigma, 2)) * (T * (kappa + rho * sigma * u * 1i - D) - 2. * std::log((1. - G * std::exp(-D * T)) / (1. - G)));
+
+        return std::exp(e1) * std::exp(e2);
+    }
+
+    [[nodiscard]] std::vector<std::complex<double>> GetCuiGradient(std::complex<double> u, double T) const
     {
         auto const& [kappa, v_bar, sigma, rho, v0] = m_parameters;
 
@@ -238,7 +355,7 @@ public:
 	// beta instead of xi
 	// lambda instead of kappa
 	// eta instead of sigma
-	[[nodiscard]] std::complex<double> GetGatheralChar(double u, double tau)
+	[[nodiscard]] std::complex<double> GetGatheralChar(std::complex<double> u, double tau) const
     {
         auto const& [k, v_bar, sigma, rho, v_0] = m_parameters;
         std::complex<double> xi = k - sigma * rho * u * 1i;
@@ -258,7 +375,7 @@ public:
         return std::exp(C * v_bar + D * v_0);
     }
 
-	[[nodiscard]] std::complex<double> GetHestonChar(double u, double tau)
+	[[nodiscard]] std::complex<double> GetHestonChar(std::complex<double> u, double tau) const
 	{
 		auto const& [k, v_bar, sigma, rho, v_0] = m_parameters;
 		std::complex<double> xi = k - sigma * rho * u * 1i;
@@ -276,6 +393,34 @@ public:
         std::complex<double> C = k * (r_plus * tau - 2.0 / m_sigma_squared * std::log((1.0 - g1 * exp_d_times_tau) / (1.0 - g1)));
 		return std::exp(C * v_bar + D * v_0);
 	}
+    //https://arxiv.org/pdf/0909.3978.pdf
+    [[nodiscard]] double GetFirstCumulant() const final
+    {
+	    return -0.5 * m_parameters.m_v_bar * m_T;
+    }
+    [[nodiscard]] double GetSecondCumulant() const final
+    {
+	    auto const& [a, s2, k, r, v] = m_parameters;
+        double a2 = a * a, a3 = a2 * a;
+        double k2 = k * k;
+        double t = m_T;
+	    return s2 / (8 * a3) * (-k2 * std::exp(-2 * a * t) + 4 * k * std::exp(- a * t) * (k - 2 * a * r) + 2 * a * t * (4 * a2 + k2 - 4 * a * k * r) + k * (8 * a * r - 3 * k));
+    }
+    [[nodiscard]] double GetFourthCumulant() const final
+    {
+        auto const& [a, s2, k, r, v] = m_parameters;
+        double a2 = a * a, a3 = a2 * a, a4 = a3 * a;
+        double k2 = k * k, k3 = k2 * k, k4 = k3 * k;
+        double t = m_T, t2 = t * t;
+        double r2 = r * r;
+	    return (3 * k2 * s2) / (64 * std::pow(a, 7)) * (
+	        -3 * k4 * std::exp(-4 * a * t)
+	        -8 * k2 * std::exp(-3 * a * t) * (2 * a * k * t * (k - 2 * a * r) + 4 * a2 + k2 - 6 * a * k * r)
+	        -4 * std::exp(-2 * a * t) * (4 * a2 * k2 * t2 * std::pow(k - 2 * a * r, 2) + 2 * a * k * t * (k3 - 16 * a3 * r -12 * a * k2 * r + 4 * a2 * k * (3 + 4 * r2)) + 8 * a4 - 3 * k4 - 32 * a3 * k * r + 8 * a * k3 * r + 16 * a2 * k2 * r2)
+	        -8 * std::exp(-a * t) * (- 2 * a2 * k * t2 * std::pow(k - 2 * a * r, 3) - 8 * a * t * (k4 - 7 * a * k3 * r + 4 * a4 * r2 - 8 * a3 * k * r * (1 + r2) + a2 * k2 * (3 + 14 * r2)) - 9 * k4 + 70 * a * k3 * r + 32 * a3 * k * r * (4 + 3 * r2) - 16 * a4 * (1 + 4 * r2) - 4 * a2 * k2 * (9 + 40 * r2))
+	        + 4 * a* t * (5 * k4 - 40 * a * k3 * r - 32 * a3 * k * r * (3 + 2 * r2) + 16 * a4 * (1 + 4 * r2) + 24 * a2 * k2 * (1 + 4 * r2))
+	        -73 * k4 + 544 * a * k3 * r + 128 * a3 * k * r * (7 + 6 * r2) - 32 * a4 * (3 + 16 * r2) - 64 * a2 * k2 * (4 + 19 * r2));
+    }
 
 
     [[nodiscard]] std::size_t GetNumberOfParameters() const final
@@ -283,6 +428,8 @@ public:
         return HestonParameters::GetNumberOfParameters();
     }
 private:
+    double GetAlpha() const;
+
 	double m_sigma_squared;
 	HestonParameters m_parameters;
 };

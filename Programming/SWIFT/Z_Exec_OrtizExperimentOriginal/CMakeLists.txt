@@ -7,6 +7,9 @@ string(REPLACE " " "_" ProjectId ${PROJECT_NAME})
 message(${PROJECT_NAME})
 project(${PROJECT_NAME})
 
-file(GLOB_RECURSE SOURCES *.cpp *.h *.ipp)
+set(SOURCES
+        luis_experiment_original.cpp
+#        luis_experiment_heston.cpp
+    )
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT FFTW3 LEVMAR ${BOOST_STATIC_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT LEVMAR ${BOOST_STATIC_LIBRARIES})

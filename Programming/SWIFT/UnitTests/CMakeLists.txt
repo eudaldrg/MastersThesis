@@ -5,8 +5,10 @@ if (CMAKE_BUILD_TYPE MATCHES Test)
 
     message(${PROJECT_NAME})
     project(${PROJECT_NAME})
+    enable_testing()
 
     file(GLOB_RECURSE SOURCES *.cpp *.h *.ipp)
-    add_executable(${PROJECT_NAME} ${SOURCES} contract_distribution_jacobians.cpp)
-    target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT FFTW3 ${BOOST_STATIC_LIBRARIES})
+    add_executable(${PROJECT_NAME} ${SOURCES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT FFTW3 LEVMAR ${BOOST_STATIC_LIBRARIES})
+    message("Linking ${PROJECT_NAME} against SWIFT FFTW3 ${BOOST_STATIC_LIBRARIES}")
 endif()

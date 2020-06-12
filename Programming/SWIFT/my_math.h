@@ -189,15 +189,14 @@ inline double Sinc(double x)
 }
 
 /// 2 / pi * (sum_{j=1}^{2^{J-1}} sin(pi * x * (2j - 1) / 2^J) / (2j - 1)
-inline double SIApprox(double x, std::size_t J_bar)
+inline double SIApprox(double x, int J)
 {
-    const uint64_t exp_2_J_minus_1 = 1UL << (J_bar - 1);
-    const uint64_t exp_2_J = exp_2_J_minus_1 * 2;
+    const int N = J * 2;
     double result = 0.0;
-    for (std::size_t j = 1; j <= exp_2_J_minus_1; ++j)
+    for (int j = 1; j <= J; ++j)
     {
         std::size_t two_j_minus_1 = 2 * j - 1;
-        result += std::sin(two_j_minus_1 * MY_PI * x / exp_2_J) / two_j_minus_1;
+        result += std::sin(two_j_minus_1 * MY_PI * x / N) / two_j_minus_1;
     }
     return result * 2 / MY_PI;
 }
