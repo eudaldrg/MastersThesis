@@ -194,7 +194,7 @@ $\tau := T - t$
 
 $r$ will refer to the risk-free interest rate.
 
-$q$ will refer to the dividend rate.
+$q$ will refer to the discount rate.
 
 \section{Option Valuation}
 
@@ -622,7 +622,7 @@ H(\xi) := \dfrac{1}{2 \pi} \int_{|\omega| > \xi}\left|\hat{f}(\omega)\right| d\o
 \end{lem}
 
 
-\subsection{Sinc Integral}
+\subsection{Sinc Integral}\label{sec:sinc_integral}
 Shannon MRA and SWIFT require solving integrals of the form $\int_{\R} f(x) g(sinc(x)) dx$. In particular, when one wants to compute the density coefficients $c_{m,k}$ of equation \ref{def:wavelet_projection}, or as will be seen in section \ref{subsec:payoff_coefficients}, for the payoff coefficients computation, one needs to solve integrals of the form $\int_{\R} f(x) \overline{\phi(x)} dx$ and $\int_{\R} f(x) \phi(x) dx$ respectively.
 
 The simplest situation is to compute the sinc integral $Si(t) = \int_0^t{sinc(x) dx}$, but even for this case there is no closed form for the integral. 
@@ -635,6 +635,7 @@ $\langle f, g \rangle = \dfrac{1}{2 \pi}\langle \hat{f}, \hat{g} \rangle$. As th
 \begin{equation}
 c_{m,k} = 2^{m/2} \int_{-1/2}^{1/2} Re \left(\hat{f}(2^{m+1} \pi t) e^{i2\pi k t} \right) dt
 \end{equation} 
+Any quadrature can be applied to numerically compute the integral, but there are known techniques to rearrange the trapezoid and midpoint quadratures to compute all the coefficients with a single FFT \cite{mar17, flo20}.
 }
 \item { \textbf{Coefficients via Sinc approximations: }
 An equivalent expression of the sinc function was presented in \cite{ort16} as a cosine expansion using Vieta's formula: 
@@ -642,40 +643,69 @@ An equivalent expression of the sinc function was presented in \cite{ort16} as a
 sinc(x) = \prod_{j = 1}^{\infty} cos \left( \dfrac{\pi x}{r^j} \right)
 \end{equation}
 This cosine expansion was then truncated and converted to a summation via the cosine product-to-sum-identity
-\begin{equation}
-\prod_{j=1}^{J} \cos \left(\frac{\pi x}{2^{j}}\right)=\frac{1}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \cos \left(\frac{2 j-1}{2^{J}} \pi x\right)
+\begin{equation} \label{eq:density_v}
+\prod_{j=1}^{\iota} \cos \left(\frac{\pi x}{2^{j}}\right)=\frac{1}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} \cos \left(\frac{2 j-1}{2^{\iota}} \pi x\right)
 \end{equation}
-obtaining the first expression for the vieta coefficients $c_{m,k}^v$
+obtaining the first expression for the vieta coefficients $c_{m,k}^v$, where
 \begin{equation}
-c_{m,k} \approx c_{m, k}^{v}= \frac{2^{m / 2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \int_{\mathbb{R}} f(x) \cos \left(\frac{2 j-1}{2^{J}} \pi\left(2^{m} x-k\right)\right) d x
-\end{equation}
-Finally, $f(x)$ would be replaced in the integral by defining $c_{m,k}^{v} = Re \left( c_{m,k} \right)$, where
+c_{m,k} \approx c_{m, k}^{v}= \frac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} \int_{\mathbb{R}} f(x) \cos \left(\frac{2 j-1}{2^{\iota}} \pi\left(2^{m} x-k\right)\right) d x
+\end{equation} \label{eq:density_vc}
+Finally, $f(x)$ would be replaced in the integral by defining $c_{m,k}^{v} = Re \left( c_{m,k}^{vc} \right)$. 
 \begin{equation}
- Re(\int_{\R} Re \left( f(x) e^{- uix} \right) dx = Re \left( \hat{f}(u) \right)
+c_{m,k}^{vc} =  \dfrac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} \int_{\mathbb{R}} f(x) e^{-i\dfrac{2 j-1}{2^{\iota}} \pi\left(2^{m} x-k\right) } d x
 \end{equation}
-Ending up with
-
-This expression was revisited in \cite{mar17} as a particular case of expressing the sinc as 
-
+Notice that when applying the $Re(\cdot)$ operator to $c_{m,k}^{cv}$, it can move freely across multiplications by real numbers and sumations and integrals, and expression \ref{eq:density_v} is ultimately recovered by using $Re \left(e^{-uix}\right) = cos(x)$. Finally, splitting the complex exponential into x-dependent and x-independent terms and replacing $\int_{\R} f(x) e^{-xAi}$ by $\hat{f}(A)$ yields:
+\begin{definition} \textbf{Vieta coefficients approximation}\label{def:vieta}
+\begin{equation}
+c_{m,k}^{*} =  \dfrac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} Re \left( \hat{f} \left(u_j 2^{m} \right) e^{ik u_j} \right)
+\end{equation}
+, where $u_j = \dfrac{\pi}{2^{\iota}}(2j - 1)$
+\end{definition}
 }
-\end{itemize}
+\end{itemize} 
 
+It is worth noting that, while the original construction of expression \ref{def:vieta} required a sumation of a power of 2 number of terms, it was revisited in \cite{mar17} and generalized by expressing the sinc in terms of its Fourier transform $$sinc(t) = Re(sinc(t) = \dfrac{1}{2\pi} \int_{-\pi}^{\pi} Re \left( e^{-iux} du \right) = \dfrac{1}{\pi} cos(ux) du$$
+Then, if one uses a mid-point quadrature with J buckets and proceeds as in the initial derivation, expression \ref{def:vieta} is recovered, with the new term J being equivalent to the previous $2^{\iota -1}$ one.
+
+The following approximation error bound was given in \cite{mar17} for the mid-point quadrature, which will be of special interest in section when analysing the approximation error of pricing an option with the SWIFT algorithm in section \ref{subsec:approximation_error}:
+
+\begin{lem} \textbf{Error of the Sinc Integral Approximation}
+\begin{equation} \label{lem:error_sinc}
+sinc(x) \approx sinc^{*}(x; J) = \dfrac{1}{J}\sum_{j = 1}^J Re\left( e^{-iu_jx} \right)
+\end{equation}
+, where $u_j = \dfrac{\pi (2j - 1)}{2J}$. Then the approximation error of applying the midpoint quadrature on a finite domain $|x| \leq a \leq \dfrac{\pi}{2}J$ is bounded by:
+\begin{equation}
+max_{|x| \leq a} \left|sinc(x) - sinc^{*}(x; J) \right| \leq \dfrac{(\pi a)^2}{(4J)^2 - (\pi a)^2}
+\end{equation}
+\end{lem}
+
+\section{Pricing by Gatheral}
 
 \section{SWIFT}
 
 The Shannon Wavelets Inverse Fourier Technique (SWIFT) combines the Shannon Wavelets and Multiresolution Analysis concepts with equation \ref{eq:integral_option_valuation} to provide a fast approximation to the value of a specific option v(x, t).
 
-The overall approximation can be summarized, as in \cite{mar17}, by a set of consecutive approximation steps. The error related to each of these approximations will be analyzed in section \ref{subsec:error_price}.
+The overall approximation can be summarized, as in \cite{mar17}, by a set of consecutive approximation steps to that equation, which are described below. The error related to each of these approximations will be analyzed in section \ref{subsec:error_price}.
 
 \begin{itemize} \label{swift_steps}
+\item \textbf{Integration Range Truncation: } The integration over the whole real line is bounded to a finite interval so that it can be solved numerically:
+\begin{equation} \label{step:integration_truncation}
+v(x, t) \approx v_0(x, t) = \int_{|y| \leq c} f(y|x)v(y, T)dy
+\end{equation}
 \item \textbf{Wavelet Projection:} f is substituted by its Shannon wavelet projection at scale $m \in \Z$. By lemma \ref{def:wavelet_projection} this can be stated as:
 \begin{equation} \label{step:wavelet_projection}
+\begin{array}{rcl}
+v_0(x,t) \approx v_1(x,t) = \int_{|y| \leq c} f_1(y|x)v(y, T)dy \\
 f(y|x) \approx f_1(y|x) := P_mf(y|x) = \sum_{k \in \Z} c_{m, k}(x) \phi_{m,k}(y)
+\end{array}
 \end{equation}
 , with $c_{m, k}(x):=\langle f(\cdot | x), \phi_{m,k} \rangle$
 \item \textbf{Series Truncation: } The set of values of k partaking the sum \ref{step:wavelet_projection} is reduced to a finite interval $[k1, k2]$
 \begin{equation} \label{step:series_truncation}
+\begin{array}{rcl}
+v_1(x,t) \approx v_2(x,t) = \int_{|y| \leq c} f_2(y|x)v(y, T)dy \\
 f_1(y|x) \approx f_2(y|x) = \sum_{k = k1}^{k2} c_{m,k}(x)\phi_{m,k}(y)
+\end{array}
 \end{equation}
 It is important to notice that the first approximation lets us express: 
 \begin{equation}
@@ -686,13 +716,35 @@ f(2^{-m}k|x) \approx f_1(2^{-m}k|x) = 2^{m/2} c_{m,k}(x)
 From this point onward a symmetric interval $[1 - \kappa, \kappa]$ will be considered both for convenience and for consistency with the code implementation.
 \end{remark}
 \item \textbf{Density Coefficients Approximation: }
-
+The integral required to compute $c_{m,k}$ is replaced by an approximation $c_{m,k}^{*}$ as discussed in section \ref{sec:sinc_integral}.
+\begin{equation}
+\begin{array}{rcl}
+v_2(x,t) \approx v_3(x,t) = \int_{|y| \leq c} f_3(y|x)v(y, T)dy \\
+f_2 (y|x) \approx f_3(y | x) = \sum_{k = 1 - \kappa}^{\kappa} c_{m,k}^{*}(x)\phi_{m,k}(y)
+\end{array}
+\end{equation}
 \item \textbf{Payoff Coefficients Approximation: }
 \end{itemize}
 
 Given a certain stochastic model for the underlying log returns price evolution over time and its density function f (equation \ref{eq:integral_option_valuation}) chosen to valuate the options and its correspondent characteristic function $\hat{f}(w) = \int_{\R} e^{-iwx} f(x) dx$, Shannon Wavelets Inverse Fourier Technique combines Shannon Wavelets and $\hat{f}$ to truncate f at a fixed approximation level m and provide a fast way to obtain the Fourier coefficients and recover the time domain ones through fast Fourier transform. (TODO: Cite)
 
-\subsection{Coefficients via Vieta's formula}
+\subsection{Approximation Error Analysis} \label{subsec:approximation_error}
+
+\begin{itemize}
+\item \textbf{Wavelet Projection:}
+\item \textbf{Series Truncation: }
+\item \textbf{Density Coefficients Approximation: }
+
+Lemma \ref{lem:error_sinc} immediately allows to bound the error of approximating the Shannon wavelets by using $sinc^{*}$:
+\begin{cor} \label{cor:error_shannon_wavelets} \textbf{Shannon Wavelet Approximation Error:}
+For a fixed $J \geq \dfrac{\pi}{2}(2^m c + k)$
+\begin{equation}
+max_{|y| \leq c, 1 - \kappa \leq k \leq \kappa} \left| \phi_{m,k}(y) - \phi^{*}_{m,k}(y) \right| \leq 2^{m/2}\dfrac{(\pi(2^m c + \kappa))^2}{(4J)^2 - (\pi(2^m c + \kappa))^2}
+\end{equation}
+\end{cor}
+\item \textbf{Payoff Coefficients Approximation: }
+\end{itemize}
+
 \begin{equation}
 c_{m,k}(\boldsymbol{\theta}; x) \approx c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \R \left[\hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
 \end{equation}
@@ -769,5 +821,7 @@ Finally we will compare the results with the results obtained from a derivative-
 \appendix
 \vfill\newpage \section{Title of the appendix}
 You can include here an appendix with details that can not be included in the core of the document. You should reference the sections in this appendix in the core document.
+
+\section{Trapezoid Quadrature For Parseval Coefficients}
 
 \end{document}
