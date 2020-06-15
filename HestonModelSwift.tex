@@ -23,6 +23,7 @@
 \usepackage{framed}
 \usepackage{hyperref}
 \usepackage{cancel}
+\usepackage{subcaption}
 
 \setlength{\parskip}{11pt}
 
@@ -210,7 +211,7 @@ Other groups of option families are obtained by changing the definition of the o
 
 \begin{definition} Payoff of a Call European option:
 \begin{equation}
-V_{EC}(y, T) = (S_T - K)\boldsymbol{1}_{S_T \geq K} = \left\{ \begin{array}{rcl}
+V_{EC}(S_T, 0) = (S_T - K)\boldsymbol{1}_{S_T \geq K} = \left\{ \begin{array}{rcl}
 S_T - K & \mbox{if} & S_T > K \\ 
 0 & \mbox{if} & S_T\leq K
 \end{array}\right.
@@ -237,36 +238,46 @@ In order to price an option that expires at some point in the future, one usuall
 
 Put-Call parity (that's why we only talk about Calls in this article)
 Model
-Log-Returns
+Log-Returns = $\dfrac{log(S_T)}{S_t}$
 
-\subsection{European Option Valuation}
-European options payoff only depends on the final price of the underlying asset on the moment of expiration of the contract. Thus, if we model the underlying asset's price evolution with an stochastic process, we can express the stochastic distribution of the payoff, and using risk neutrality, compute the option price as the discounted expectation (TODO: Explain in \ref{subsec:riskneu}) (under risk neutrality assumptions) of the payoff:
-\begin{align} 
-\label{eq:option_valuation_expectation}
-& v(x, \tau) & = e^{-r \tau}\E^{\Q}(v(y, T)|x) & = e^{-r \tau} \E^{Q}((S_T - K)\boldsymbol{1}_{S_T \geq K}) \\  
-\label{eq:option_valuation_useless}
-&  &  & = e^{-r \tau}(\E^{Q}(S_T \boldsymbol{1}_{S_T \geq K}) - K\E^{Q}(\boldsymbol{1}_{S_T \geq K})) \\
-\label{eq:option_valuation_final_form}
-&  &  & = S_t e^{-q \tau} P_1(x, \tau) - K e^{-r \tau} P_2(x, \tau)
+\subsection{European Option Valuation} \label{subsec:european_option_valuation}
+The payoff of some option contracts, like Bermudan, Asian or American options, depends on the price of the underlying asset at several points in time, or even through all its life. European options payoff, on the other hand, only depends on the final price of the underlying asset on the moment of expiration of the contract ($S_T$). 
+
+A general pricing formula for this kind of options uses risk neutrality to compute the option price as the discounted expectation of the payoff at expiry. Then the pricing problem converts to obtaining an stochastic process describing $S_T$ conditioned to the initial value $S_t$. If one considers generic stochastic variables x and y that fully describe the stochastic variables $S_t$ and $S_T$ respectively, the general pricing formula becomes:
+\begin{equation}
+\label{eq:integral_option_valuation}
+v(x, \tau)  = e^{-r \tau}\E^{\Q}(v(y, 0)|x)  = e^{-r\tau} \int_{\R}v(y,0)f(y|x)dy)
+\end{equation}
+, where v denotes the option value, r the risk-neutral interest rate, $\E^Q$ the expectation under the risk-neutral measure.
+
+Any choice of x and y will allow computing the value of the option through a numerical integration scheme, but most common underlying price models used for option pricing have simpler expressions in the log space, so a common choice when solving this expression is to define:
+\begin{align}
+\label{eq:y}
+y = ln \left(\dfrac{S_T}{K} \right) \\
+\label{eq:x}
+x = ln \left(\dfrac{S_t}{K} \right)
 \end{align}
 
-, where v denotes the option value, r the risk-neutral interest rate, $\E^Q$ the expectation under the risk-neutral measure, x and y denote state variables that fully describe the underlying asset process state at times t and T respectively, and $P_1$ and $P_2$ are specific to the model we are using (their expression for the Heston model will be provided in \ref{chap:heston_model}.
-
-The expectation from equation \ref{eq:option_valuation_expectation}
-, can be expressed as the following integral, which can then be approximated numerically:
-
-\begin{equation}\label{eq:integral_option_valuation}
-v(x,t) = e^{-r(T - t)}\E^{\Q}(v(y, T)|x) = e^{-r(t - T)} \int_{\R}v(y,T)f(y|x)dy
+Given this maturity state variable choice, one can express the payoff of a European put option as
+\begin{equation} \label{eq:european_payoff}
+v(y, T) := K \cdot (1 - e^y)^{+} := K \cdot max(1 - e^y, 0)
 \end{equation}
 
-There is a broad literature in methods to solve this integration problem for basic underlying asset models and some simpler models, as Black and Scholes even have closed solutions (TODO: ref BS formula) but it is common that, for more complex models, the probability function at expiry doesn't have a known expression but it's characteristic function does, so several methods have been developed using numerical integration and the Fourier transform.
+\begin{remark}
+When solving equation \ref{eq:integral_option_valuation} using numerical methods, one should prefer calculating the price of a call option via the price of a put one with the same strike and apply the put-call parity formula to recover the original call price, as $e^y$ can have arbitrarily large values inside the integration domain which can lead to errors due to floating point arithmetics \cite{mar17}.
+\end{remark}
 
-\subsection{Volatility smile and surface} \label{subsec:smile_and_surf}
+There is a broad literature in methods to solve this integration problem for basic underlying asset models. Some of them, as Black and Scholes (BS), even have closed solutions (as will be seen in section \ref{subsec:bs}) but it is common that, for more complex models, $f(y|x)$ doesn't have a known expression.
 
-\section{Black and Scholes} \label{sec:bs}
+In some cases, this can be circumvented by using numerical integration methods based on Fourier transforms, if there is a known expression for the characteristic function of $f(y|x)$
+\begin{equation}
+\hat{f}_y(u;x) = \int_{\R} f(y | x) e^{-iux} du
+\end{equation}
 
-\section{L\'evy Processes in Option Pricing}
-Some well known underlying asset log returns theoretical stochastic processes, as the Geometric Brownian Motion (GBM) model (known as the Black-Scholes-Merton\cite{bs73, mer73} model), can be considered inside a more general concept called L\'evy processes, which have a known Fourier transform.
+This is the case of the L\'evi models and the Heston model which will be presented in the following sections.
+
+\section{L\'evy Processes}
+Some well known underlying asset log returns theoretical stochastic processes, as the Geometric Brownian Motion (GBM) model (known as the Black-Scholes-Merton\cite{bs73, mer73} model), can be considered inside a more general concept called L\'evy processes.
 
 \begin{definition} A stochastic process $X = \{X_t : t \geq 0\}$ is considered a L\'evy process if:
 \begin{itemize}
@@ -277,50 +288,102 @@ Some well known underlying asset log returns theoretical stochastic processes, a
 \end{definition}
 
 A famous property of L\'evy processes is the L\'evy-Khintchine formula:
-\begin{lem}\label{levy_khin} Let $X = (X_t)_{t\geq 0}$ be a L\'evy process. Then its characteristic function $Char_X(\omega)$ is:
+\begin{lem}\label{levy_khin} Let $X = (X_t)_{t\geq 0}$ be a L\'evy process. Then its characteristic function $Char_X(u)$ is:
 $$
-Char_X(\omega)(t) := \E \left[e^{i\theta X(t)}\right] = e^{t\left(ai\omega - \dfrac{\sigma^2 \omega^2}{2} + \int_{\{0\}^c}(e^{i\omega x} \textbf{I}_{|x| < 1})\Pi(dx)\right)} = e^{\psi_L(w)}
+Char_X(u)(t) := \E \left[e^{i\theta X(t)}\right] = e^{t\left(aiu - \dfrac{\sigma^2 u^2}{2} + \int_{\{0\}^c}(e^{iu x} \textbf{I}_{|x| < 1})\Pi(dx)\right)} = e^{\psi_L(w)}
 $$
-, where $\psi_L(\omega)$ is called the characteristic L\'evy exponent, and $a \in \R$, $\sigma \geq 0$, and $\Pi$ is the L\'evy measure of X, a $\sigma$-finite measure satisfying $\int_{\{0\} ^c}(1 \wedge x^2)\Pi (dx) < \infty$
+, where $\psi_L(u)$ is called the characteristic L\'evy exponent, and $a \in \R$, $\sigma \geq 0$, and $\Pi$ is the L\'evy measure of X, a $\sigma$-finite measure satisfying $\int_{\{0\} ^c}(1 \wedge x^2)\Pi (dx) < \infty$
 \end{lem}
 
 Note that any L\'evy process can be completely characterized by the triplet $(a, \sigma, \Pi)$, which represent a linear drift, a Brownian motion, and a L'evy jump process respectively.
 
-\subsection{Underlying Process Modeling}
+L'evy models in option pricing typically consider x and y as in expressions \ref{eq:x} and \ref{eq:y} and let $X_t := x$, $X_T := y$, and model the log returns evolution by a L'evy process. Then $\hat{f}(y|x) = \hat{f}(X_T|X_t)$ can be obtained through formula \ref{levy_khin}:
+\begin{equation}
+\hat{f}_{y}(u; x) := 
+\E\left[e^{iu X_T}\right] = 
+\E\left[e^{iu (X_t + X_{T-t})}\right] = 
+e^{-iu x}e^{-i u \mu T + T \psi_L(-u)} = 
+e^{-iu x}\hat{f}(u) = 
+\hat{f}_{y - x}(u)
+\end{equation}
 
-In option pricing, one can denote by $\{S_t\}_{t=0}^T$ the underlying price process and model it with an exponential L\'evy process. For a given strike $K$, one can consider the log-transformed process $X_t := log(U_t / K)$, which will follow another L\'evy process with an extra drift. Let the state variables be $x := log(S_t / K)$ and $y := log(U_T / K)$. In order to solve equation \ref{eq:integral_option_valuation} one needs to evaluate $f(y|x)$, which is not always available in analytic form, but formula \ref{levy_khin} can be used to obtain the form of its Fourier transform at any strike: 
-%TODO Make sure the term at the money has been introduced before.
-$$
-\hat{f}(\theta; x) := \E\left[e^{i\theta X_T}\right] = e^{-i\theta x}e^{-i \theta \mu T + T \psi_L(-\theta)} =: e^{-i\theta x}\hat{f}(\theta) 
-$$
-%TODO Make sure I understand wether this expresses the general one in terms of the ATM one, or gives an expression for 
-, where $\mu:= r - \psi_L(-i)$ is a drift correction term and $\psi_L(\theta)$is the characteristic L'evy exponent of the underlying log-returns process.
+, where $\mu:= r - \psi_L(-i)$ is a drift correction term and $\psi_L(u)$is the characteristic L\'evy exponent of the underlying log-returns process.
 
-Given this price transformation, we can express the payoff of a put option as
-$$
-v(y, T) := K \cdot max(1 - e^y, 0)
-$$
-It is usually better for numerical reasons to always calculate the price of the call via the price of the put and the put-call parity formula, as $e^y$ can have arbitrarily large values inside the integration domain.
-%TODO I don't know how relevant that is
+\subsection{Black-Scholes-Merton Model} \label{subsec:bs}
+
+A particular case of L\'evi processes is the widely used BS model, originally presented in \cite{bs73} by using the following stochastic differential equation:
+\begin{definition} BS model price equation:
+\begin{equation}
+dS_t = (r - q) S_t + \sigma S_t W_t
+\end{equation}
+, where $W_t$ is a Brownian Motion process and $\sigma$ is called the BS volatility and models defines the standard deviation of the log-returns.
+\end{definition}
+
+For European options, equation \ref{eq:integral_option_valuation} can be solved analytically, and the well-known BS valuation formula can be obtained:
+
+\begin{lem} \textbf{Black-Scholes-Merton valuation formula for European Call Options}:
+\begin{align}
+  C_K(\sigma; S_t, \tau) &= N(d_1)S_t - N(d_2) PV(K) \\
+     d_1 &= \frac{1}{\sigma\sqrt{\tau}}\left[\ln\left(\frac{S_t}{K}\right) + \left(r + \frac{\sigma^2}{2}\right)(\tau)\right] \\
+     d_2 &= d_1 - \sigma\sqrt{\tau} \\
+PV(K) &=Ke^{-r\tau}
+\end{align}
+\end{lem}
+
+For the BS model, $\hat{f}(u)$ can be obtained by setting $\psi_L (u) = -\dfrac{\sigma^2}{2}u^2$ (for a given $\sigma > 0$, which is called the BS implied volatility) resulting in
+\begin{definition} \textbf{BS characteristic function:}
+\begin{equation}
+\hat{f}_{BS}(u) = exp{\left(-iu \left( r-q - \dfrac{1}{2}\sigma^2 \right) \tau - \dfrac{\sigma^2 u^2 \tau}{2} \right)}
+\end{equation}
+\end{definition}
+
+\subsection{Implied Volatility smile and surface} \label{subsec:smile_and_surf}
+If the GBM process modeled accurately real market prices, the BS model could be calibrated using several strikes to obtain a single implied volatility value, which could then be used to price any option of a given strike and maturity. 
+
+In real markets, if one chooses a fixed expiry and calibrates m different models using m different strikes, the obtained implied volatilities will probably differ. The exact shape will depend on the underlying, and can vary due to several reasons. Figures \ref{fig:currency_smile} and \ref{fig:equity_smile} show the evolution of the implied volatility over strike for foreign currency and equity markets. This strike evolution is traditionally called volatily smile (or, sometimes, volatility skew for equity markets). One could use equation \ref{eq:integral_option_valuation} and derive a numerical approximation  
+
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.9\linewidth]{Media/currency_smile.PNG}
+  \caption{Foreign Currency market.}
+%  \label{fig:sub1}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.65\linewidth]{Media/equity_smile.PNG}
+  \caption{Equity market.}
+%  \label{fig:sub2}
+\end{subfigure}
+\caption{From \cite{hul09}. Volatility smiles for typical markets.}
+\label{fig:smile}
+\end{figure}
 
 
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.8\linewidth]{Media/currency_distribution.PNG}
+  \caption{Foreign currency market}
+%  \label{fig:sub1}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.9\linewidth]{Media/equity_distribution.PNG}
+  \caption{Equity market}
+%  \label{fig:sub2}
+\end{subfigure}
+\caption{From \cite{hul09}. GBM (Lognormal) and Implied distributions for typical markets.}
+\label{fig:implied_distribution}
+\end{figure}
 
-\begin{table}\label{tab:levy_exp}
-\center
-\begin{tabular}{|l|l|c|}
-\hline
-Model     & $\psi_L(w)$	& Param. Restrictions \\
-\hline
-GBM   	  &  $-\dfrac{\sigma^2}{2}\omega^2$	& $\sigma > 0$ \\
-\hline
-\end{tabular}
-\caption{Test}
-\end{table}
 \section{Heston Model} \label{chap:heston_model}
 
-The Black and Scholes model discussed in section \ref{sec:bs} fails to capture essential well known properties of the real world market dynamics of the log returns distributions, as its high kurtosis, its negative skew, and the correlation between the underlying price and its volatility.
+The Black and Scholes model presented in section \ref{subsec:bs} fails to capture essential well-known properties of the real world market dynamics of the log returns distributions, as its high kurtosis, its negative skew, the correlation between the underlying price and its volatility... As well as the risk premium investors give deep ITM or OTM options, which result in the volatility smile.
 
-Several variations of this model have been proposed since it was introduced. Some of them, called stochastic volatility (SV) models, considered all the real world dynamics mentioned above and treated both the underlying price and its volatility as (potentially correlated) stochastic processes.
+To address that, several variations of this model have been proposed since it was introduced. Some of them, called stochastic volatility (SV) models, considered all the real world dynamics mentioned above and treated both the underlying price and its volatility as (potentially correlated) stochastic processes.
 
 One of the first and most well-known SV models is the Heston model, defined by the following system of stochastic differential equations.
 
@@ -337,48 +400,36 @@ $$
 , where $\nu_t$ is the variance of the underlying asset price at time t. The parameters $\kappa$, $\overline{\nu}, \sigma, \rho$ are respectively called: mean-reversion rate, long-term variance, volatility of volatility, and correlation between the Brownian processes $W_t^{(1)}$ and $W_t^{(2)}$. From now on, $\theta := (\nu_0, \overline{\nu}, \rho, \kappa, \sigma)$ will refer to the set of model parameters.
 \end{definition}
 
-Several studies have shown the relations between the Heston model parameters and the shape of the implied volatility surface \cite{cla11, gat06, gil12, jan11} which can be summarized as follows:
+Several studies have shown the relations between the Heston model parameters and the shape of the implied volatility surface \cite{cla11, gat06, gil12, jan11} necessary to obtain the same prices with a BS model. These relations can be summarized as follows:
 
 \begin{itemize} \label{hes_param_properties}
 \item $\nu_0$ controls the position of the volatility surface.
 \item $\rho$ controls its skewness.
 \item $\kappa$ and $\sigma$ control the convexity of the surface.
-\item $\kappa(\nu_0 - \overline{\nu})$ controls the term structure of implied volatility. %TODO look this up.
+\item $\kappa(\nu_0 - \overline{\nu})$ controls the term structure of implied volatility.
 \end{itemize}
 
-Heston also provided an expression of the price of an European option. In terms of equation \ref{eq:option_valuation_final_form}, the values of $P_1$ and $P_2$ are:
+Heston also provided an expression of the price of an European option, which will be adapted here in terms of the state variables x and y defined in section\ref{subsec:european_option_valuation}:
 
-\begin{equation}
-\begin{aligned}
-&P_{1}(\boldsymbol{\theta} ; K, \tau)=\frac{1}{2}+\frac{1}{\pi} \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{5_{0}}}}{i u} \frac{\phi(\boldsymbol{\theta} ; u-i, \tau)}{\phi(\boldsymbol{\theta} ;-i, \tau)}\right) \mathrm{d} u\\
-&P_{2}(\boldsymbol{\theta} ; K, \tau)=\frac{1}{2}+\frac{1}{\pi} \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{5_{0}}}}{i u} \phi(\boldsymbol{\theta} ; u, \tau)\right) \mathrm{d} u
-\end{aligned}
-\end{equation}
-
-Substituting these values into equation \ref{eq:option_valuation_final_form} , one can obtain an analytic equation to obtain the price of European Call options:
-
-% TODO: Change all this to log(F/K) instead of log(K/F)
-
-\begin{lem} Heston's pricing method.
-\begin{equation} \label{eq:heston_analytic}
-\begin{aligned}
-C(\theta ; K, \tau)=& \frac{1}{2}\left(S_{t} e^{-q \tau}-K e^{-r \tau}\right) \\
-&+\frac{e^{-r \tau}}{\pi}\left[S_{0} \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{S_0}}}{i u} \phi(\theta ; u-i, \tau)\right) \mathrm{d} u\right. \\
-&\left.-K \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{S_0}}}{i u} \phi(\theta ; u, \tau)\right) \mathrm{d} u\right]
-\end{aligned}
-\end{equation}
-
-% TODO: We should split it into the part that depends on the forward F_{t,T} and K, and the other one and explain that they are quite independent. When valuating, we assume the price of the forward to be S_0 * exp of whatever. Just look at gatheral's book.
-% Also explain a bit that we assume the risk neutral drift to be r - q (though in our simulations we will set q = 0)
-
+\begin{align} 
+\label{eq:option_valuation_expectation}
+& v(x, \tau) & = e^{-r \tau}\E^{\Q}(v(y, 0)|x) & = e^{-r \tau} \E^{Q}(K(e^y - 1)\boldsymbol{1}_{y \geq 0}) \\  
+\label{eq:option_valuation_useless}
+&  &  & = Ke^{-r \tau}(\E^{Q}(e^y \boldsymbol{1}_{y \geq 0}) - \E^{Q}(\boldsymbol{1}_{y \geq 0})) \\
+\label{eq:option_valuation_final_form}
+&  &  & = K e^x e^{-q \tau} P_1(\boldsymbol{\theta}; x, \tau) - K e^{-r \tau} P_2(\boldsymbol{\theta}; x, \tau)
+\end{align}
+, where $P_1$ and $P_2$ are defined as:
+\begin{align}
+&P_{1}(\boldsymbol{\theta} ; x, \tau)=\frac{1}{2}+\frac{1}{\pi} \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{i u x}}{i u} \frac{\phi(\boldsymbol{\theta} ; u-i, \tau)}{\phi(\boldsymbol{\theta} ;-i, \tau)}\right) \mathrm{d} u\\
+&P_{2}(\boldsymbol{\theta} ; x, \tau)=\frac{1}{2}+\frac{1}{\pi} \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{iux}}{i u} \phi(\boldsymbol{\theta} ; u, \tau)\right) \mathrm{d} u
+\end{align}
 , where $\phi$ is the characteristic function of the process followed by the logarithm of price of the underlying asset. The expression of this characteristic function is
 \begin{equation} \label{eq:char_heston}
-\begin{array}{l}
-\phi(\boldsymbol{\theta} ; u, \tau):=\mathrm{E}\left[\exp \left(i u \log \frac{S_{t}}{S_{0}}\right)\right]=\exp \left\{i u \log \frac{F}{S_{0}}\right. \\
+\phi(\boldsymbol{\theta} ; u, \tau):=\mathrm{E}\left[\exp \left(i u \log \frac{S_{t}}{S_{0}}\right)\right]=\exp \left\{i u \log \frac{F}{S_{0}}\right.
 \left.\quad+\frac{\kappa \bar{v}}{\sigma^{2}}\left[(\xi+d) \tau-2 \log \frac{1-g_{1} e^{d \tau}}{1-g_{1}}\right]+\frac{v_{0}}{\sigma^{2}}(\xi+d) \frac{1-e^{d \tau}}{1-g_{1} e^{d \tau}}\right\}
-\end{array}
 \end{equation}
-, where $F := S_t e^{(r - q) \tau}$ is the forward price and
+, where $F := S_t e^{(r - q) \tau} = S_t \phi(\boldsymbol{\theta; u, \tau}$ is the forward price and
 
 \noindent\begin{minipage}{.3\linewidth}
 \begin{equation}
@@ -395,6 +446,22 @@ d:=\sqrt{\xi^{2}+\sigma^{2}\left(u^{2}+i u\right)}
 g_{1}:=\frac{\xi+d}{\xi-d}
 \end{equation}
 \end{minipage}
+
+Substituting these values into equation \ref{eq:option_valuation_final_form} , one can obtain an analytic equation to obtain the price of European Call options:
+
+% TODO: Change all this to log(F/K) instead of log(K/F)
+
+\begin{lem} Heston's pricing method.
+\begin{equation} \label{eq:heston_analytic}
+\begin{aligned}
+C(\theta ; K, \tau)=& \frac{1}{2}\left(S_{t} e^{-q \tau}-K e^{-r \tau}\right) \\
+&+\frac{e^{-r \tau}}{\pi}\left[S_{0} \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{S_0}}}{i u} \phi(\theta ; u-i, \tau)\right) \mathrm{d} u\right. \\
+&\left.-K \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{S_0}}}{i u} \phi(\theta ; u, \tau)\right) \mathrm{d} u\right]
+\end{aligned}
+\end{equation}
+
+% TODO: We should split it into the part that depends on the forward F_{t,T} and K, and the other one and explain that they are quite independent. When valuating, we assume the price of the forward to be S_0 * exp of whatever. Just look at gatheral's book.
+% Also explain a bit that we assume the risk neutral drift to be r - q (though in our simulations we will set q = 0)
 \end{lem}
 
 From this expression, one can compute the analytic gradients of the option price in terms of the derivatives of the characteristic function. Then they can be used to optimize an appropriate objective function using gradient-descent based methods (See chapter \ref{chap:optimization_problem}) but, as will be explained in the next section, the analytic derivatives have not been widely used traditionally to calibrate Heston models prior to Cui et al. due to the complexity of the expressions obtained by derivating the available characteristic function expressions as eq \ref{eq:char_heston}  \cite{cui17}.
@@ -425,13 +492,19 @@ These methods are too computationally expensive for real-time use as of now: Fer
 
 \subsection{Alternative Expressions}
 
+For long-term maturities (i.e. big values of $\tau$), Kahl and J\"{a}ckel show that the characteristic  \ref{eq:char_heston} has discontinuities as $u$ increases \cite{kah06}, which can lead to numerical problems for many option valuation methods based on the integral expression \ref{eq:integral_option_valuation}. They show that this discontinuities arise because of a term in equation \ref{eq:char_heston} of the form $G^\alpha(u) := e^{\alpha log G(u)}$ with $G(u) := \dfrac{1 - g_1 e^{d\tau}}{1 - g_1}$ and $\alpha := \dfrac{\kappa \overline{\vega}}{\sigma^2}$, for non-integer values of $\alpha$. This is due to the spiral shape of $G(u)$ which produces a phase jump on $log(G(u))$ each time $G(u)$ crosses the negative side of the real line.
+
+Albrecher et al. \cite{alb07} showed that the dicontinuity arises from taking the principal value of the square root in d (see equation \ref{eq:char_d}) and it can be avoided if the second value is used. In fact, it was proven that this alternative expression was continuous in the full parameters space \cite{sch04}
+
 \begin{lem}
-\begin{equation}
+\begin{equation} \label{eq:char_schouten}
 \phi(\boldsymbol{\theta} ; u, \tau)=\exp \left\{i u \log \frac{F}{S_{0}}
 +\frac{\kappa \bar{v}}{\sigma^{2}}\left[(\xi-d) \tau-2 \log \frac{1-g_{2} e^{-d \tau}}{1-g_{2}}\right]+\frac{v_{0}}{\sigma^{2}}(\xi-d) \frac{1-e^{-d \tau}}{1-g_{2} e^{-d \tau}}\right\} 
 \end{equation}
 , where $g_2 = \dfrac{1}{g_1}$
 \end{lem}
+
+A more compact version of the characteristic function was later derived by del Ba\~no Rollin et al. \cite{rol10} from the moment generating function of the process. This expression also had the benefit of replacing the u-dependent power functions in equations \ref{eq:char_heston} and \ref{eq:char_schouten} by hyperbolic functions, which greatly simplified obtaining analytic expressions of the gradient of the characteristic function.
 
 \begin{lem}
 \begin{equation}
@@ -447,78 +520,56 @@ B:=\frac{d e^{\kappa \tau / 2}}{v_{0} A_{2}}
 \end{array}\end{equation}
 \end{lem}
 
-\section{Calibration as an optimization problem} \label{chap:optimization_problem}
-The goal of calibrating a model using market data, is to obtain model parameters that, when used for option valuation with an appropriate option valuation method, yield results similar to the real market option prices.
+This last expression also showed discontinuity problems, as the original characteristic function in equation\ref{eq:char_heston}, but Cui, del Ba\~no Rollin, and Germano provided an equivalent expression, continuous in the full parameters domain, and with an analytic expression for its gradient.
 
-Completely matching the market for all strikes and maturities is an over-determined problem so, generally, the calibration consists on a least squares minimization problem, using a set of option market prices at different strikes and maturities.
-
-In this section, the objective function of the optimization problem used by \cite{cui17} is presented, as it will be the one used in this study.
-
-\subsection{Objective Function}
-Let $C^*(K_i, \tau_i)$ be the market price of a European call option and
- $C(\boldsymbol{\theta}; K_i, \tau_i)$ be the price at the same strikes and maturities obtained by using the Heston analytic formula \ref{eq:heston_analytic}. Let's also assume that we use n different options to calibrate the model, so 
- $i \in [1,n] \subset \Z$
- . Then:
- \begin{definition} The calibration of the model is defined as the minimization problem $$min_{\boldsymbol{\theta} \in \R^5} (f(\boldsymbol{\theta}))$$ $$f(\boldsymbol{\theta}) := \dfrac{1}{2}||\boldsymbol{r}(\theta)||^2 = \dfrac{1}{2} \boldsymbol{r}^T(\boldsymbol{\theta})\boldsymbol{r}(\boldsymbol{\theta})$$
-\end{definition}
-
-, where $\boldsymbol{r}(\boldsymbol{\theta})$ is the n-dimensional vector of the residuals obtained when pricing the options considered for calibration using the model parameters. That is:
-
+\begin{thm} \textbf{Cui's expression of the Heston characteristic function.}
+\begin{equation}
+\phi(\boldsymbol{\theta}; u, \tau) = exp \left(i u log \dfrac{F}{S_{0}}-\dfrac{\kappa \bar{v} \rho \tau i u}{\sigma}-A + \dfrac{2 \kappa \bar{v}}{\sigma^{2}}D \right)
+\end{equation}
+is an algebraically equivalent representation of equation \ref{eq:char_heston}, continuous through all the parameters space, where
+\begin{equation}
+D := \log \frac{d}{v_{0}}+\frac{(\kappa-d) \tau}{2}-\log \left(\frac{d+\xi}{2 v_{0}}+\frac{d-\xi}{2 v_{0}} e^{-d \tau}\right)
+\end{equation}
+. Further, its gradient with respect to the Heston model parameters $\boldsymbol{\theta} = (\nu_0, \overline{\nu}, \sigma, \kappa, \rho)^{T}$ is given by:
+\begin{equation}
+\nabla \phi(\boldsymbol{\theta}; u, \tau) = \boldsymbol{h}(u) \phi(\boldsymbol{\theta}; u, \tau)
+\end{equation}
+, where $\boldsymbol{h}(u) = [h_{v_0}(u), h_{\overline{v}}(u), h_\sigma(u), h_\kappa(u), h_\rho(u)]^T$ and:
 \begin{align}
-\boldsymbol{r}(\boldsymbol{\theta}) := \left[r_1(\boldsymbol{\theta}), \ldots, r_n(\boldsymbol{\theta}) \right]^T, 
-&& r_i(\boldsymbol{\theta}) :=  C(\boldsymbol{\theta}; K_i, \tau_i) - C^*(K_i, \tau_i), && i = 1, \ldots, n
+h_{v_0}(u)& =-\frac{A}{v_{0}} \\
+h_{\overline{v}}(u)& =\frac{2 \kappa}{\sigma^{2}} D-\frac{\kappa \rho \tau i u}{\sigma} \\
+h_{\sigma}(u)& =-\frac{\partial A}{\partial \rho}+\frac{2 \kappa \bar{v}}{\sigma^{2} d}\left(\frac{\partial d}{\partial \rho}-\frac{d}{A_{2}} \frac{\partial A_{2}}{\partial \rho}\right)-\frac{\kappa \bar{v} \tau i u}{\sigma} \\
+h_{\kappa}(u)& =\frac{1}{\sigma i u} \frac{\partial A}{\partial \rho}+\frac{2 \bar{v}}{\sigma^{2}} D+\frac{2 \kappa \bar{v}}{\sigma^{2} B} \frac{\partial B}{\partial \kappa}-\frac{\bar{v} \rho \tau i u}{\sigma} \\
+h_{\rho}(u)& =-\frac{\partial A}{\partial \sigma}-\frac{4 \kappa \bar{v}}{\sigma^{3}} D+\frac{2 \kappa \bar{v}}{\sigma^{2} d}\left(\frac{\partial d}{\partial \sigma}-\frac{d}{A_{2}} \frac{\partial A_{2}}{\partial \sigma}\right)+\frac{\kappa \bar{v} \rho \tau i u}{\sigma^{2}}
 \end{align}
-
-It is worth noting that the choice of a specific objective function (and appropriate strikes and maturities to use as calibration points) will intimately characterize the model. This can be used when trading to fit to the specific needs of trader, ultimately leading to different objective functions, as relative price differences instead of absolute ones, or log-likelihood based methods \cite{jac00} for, for example, hedging and market making \cite{chr02}. 
-
-One must be cautious, as this choice can lead to consistently giving more weight in the calibration to some set of options over the others. For example, according to \cite{cui17}, a commonly used minimization problem in industry for calibration consists on a least-squares problem similar to the one used in this study, using squared differences of the implied BS volatility of each calibration option, which can lead to giving more weight to OTM options in comparison with ITM ones.
-
-The choice of calibration strikes and maturities can also have a similar impact in the pricing model. For example, as an option gets closer to the expiration date, the variance of the price change until expiration of the underlying asset gets smaller. So, if one were to always use the same strikes across different expiries, then for long-term maturities the model would end up with a lot of calibration points ATM but would lack control points in regions where the density function of the underlying asset is still relevant, which could lead to serious pricing errors for mildly OTM and ITM options. For the short-term maturities, the relevant regions of the density function would have small number of sparse strikes and there would be a lot of strikes in very OTM and ITM regions, where prices are mostly close to 0 and to the discounted payout respectively, so they are less sensitive to the change in the model parameters and do not help much in calibration (the price derivatives with respect to the model parameters will be almost flat at those expiry-maturity points, so they will not affect much the optimization problem), effectively wasting computational power.
-
-As this study does not strive for any specific trading strategy, the choice of TODO: finish this and mention that the calibration objective function should be the same as the one used when valuating the model performance \cite{chr02}
-
-%% Anava per aqui1
-
-\section{Characteristic function and Gradient Calculation} \label{sec:gradient}
-
-For long-term maturities (i.e. big values of $\tau$), Kahl and J\"{a}ckel show that the characteristic  \ref{eq:char_heston} has discontinuities as $u$ increases \cite{kah05}, which can lead to numerical problems for many option valuation methods based on the integral expression \ref{eq:integral_option_valuation}. They show that this discontinuities arise because of a term in equation \ref{eq:char_heston} of the form $G^\alpha(u) := e^{\alpha log G(u)}$ with $G(u) := \dfrac{1 - g_1 e^{d\tau}}{1 - g_1}$ and $\alpha := \dfrac{\kappa \overline{\vega}}{\sigma^2}$, for non-integer values of $\alpha$. This is due to the spiral shape of $G(u)$ which produces a phase jump on $log(G(u))$ each time $G(u)$ crosses the negative side of the real line. This only happens if $d$ is defined taking the principal value of the square root that appears in its expression (see equation \ref{eq:char_d}) and the discontinuity can be avoided if the second value is used \cite{alb07}.
-
-
-%% Anava per aqui2
-
-$\quad A:=\frac{A_{1}}{A_{2}}$
-$\quad A_{1}:=\left(u^{2}+i u\right) \sinh \frac{d \tau}{2}$
-$\quad A_{2}:=\frac{d}{v_{0}} \cosh \frac{d \tau}{2}+\frac{\xi}{v_{0}} \sinh \frac{d \tau}{2}$
-\begin{equation}
-B:=\dfrac{de^{\kappa \tau / 2}}{v_0A_2}
-\end{equation}
-
-
-\subsection{Gradient Function}
-
-\begin{thm} Gradient Function of an European Heston Option
-\begin{equation}
-\begin{aligned}
-\nabla C(\boldsymbol{\theta} ; K, \tau)=\frac{e^{-r \tau}}{\pi} &\left[\int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{s_{0}}}}{i u} \nabla \phi(\boldsymbol{\theta} ; u-i, \tau)\right) \mathrm{d} u\right.\\
--&\left.K \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{s_{0}}}}{i u} \nabla \phi(\boldsymbol{\theta} ; u, \tau)\right) \mathrm{d} u\right]
-\end{aligned}
-\end{equation}
-, where $\nabla \phi(\boldsymbol{\theta}; u, \tau) = \boldsymbol{h}(u) \phi(\boldsymbol{\theta}; u, \tau)$ and $\boldsymbol{h}(u) = [h_{v_0}(u), h_{\overline{v}}(u), h_\sigma(u), h_\kappa(u), h_\rho(u)]^T$
-
-\begin{equation}
-\begin{array}{l}
-h_{v_0}(u)=-\frac{A}{v_{0}} \\
-h_{\overline{v}}(u)=\frac{2 \kappa}{\sigma^{2}} D-\frac{\kappa \rho \tau i u}{\sigma} \\
-h_{\sigma}(u)=-\frac{\partial A}{\partial \rho}+\frac{2 \kappa \bar{v}}{\sigma^{2} d}\left(\frac{\partial d}{\partial \rho}-\frac{d}{A_{2}} \frac{\partial A_{2}}{\partial \rho}\right)-\frac{\kappa \bar{v} \tau i u}{\sigma} \\
-h_{\kappa}(u)=\frac{1}{\sigma i u} \frac{\partial A}{\partial \rho}+\frac{2 \bar{v}}{\sigma^{2}} D+\frac{2 \kappa \bar{v}}{\sigma^{2} B} \frac{\partial B}{\partial \kappa}-\frac{\bar{v} \rho \tau i u}{\sigma} \\
-h_{\rho}(u)=-\frac{\partial A}{\partial \sigma}-\frac{4 \kappa \bar{v}}{\sigma^{3}} D+\frac{2 \kappa \bar{v}}{\sigma^{2} d}\left(\frac{\partial d}{\partial \sigma}-\frac{d}{A_{2}} \frac{\partial A_{2}}{\partial \sigma}\right)+\frac{\kappa \bar{v} \rho \tau i u}{\sigma^{2}}
-\end{array}
-\end{equation}
 
 \end{thm}
 
-\subsubsection{Fast Calculation of integrands}
-All integrands are of the form: % PAGE 6, right column.
+\subsection{Moment Generating Function} \label{subsec:heston_moment}
+
+In \cite{rol09}, the moment generating function for the Heston model is provided for the stochastic variable $X_t := ln(S_t) - \mu \tau$. Adapting it to provide it for $y|x$ one obtains:
+\begin{equation}
+\begin{aligned}
+M(u)=\mathbb{E}\left[ e^{u X_{t}}\right] = e^{- x u} exp & \left[ \dfrac{2 \kappa \overline{\nu}}{\sigma^{2}} \left( \dfrac{(\kappa-\sigma \rho u) \tau}{2} - log \left(cosh \left(\dfrac{P(u) \tau}{2} \right)+(\kappa-\sigma \rho u) \dfrac{sinh \left(\dfrac{P(u) \tau}{2} \right)}{P(u)}\right) \right) \right. \\
+& \left. -\mu \tau -v_{0} \dfrac{\left(u-u^{2}\right) \dfrac{sinh \left(\dfrac{P(u) \tau}{2} \right)}{P(u)}}{cosh \left(\dfrac{P(u) \tau}{2} \right)+(\kappa-\sigma \rho u) \dfrac{sinh \left(\dfrac{P(u) \tau}{2} \right)}{P(u)}} \right]
+\end{aligned}
+\end{equation}
+
+, where $P(u)=\sqrt{(\kappa -\rho \sigma u)^{2}+\sigma^{2}\left(u-u^{2}\right)}$
+
+This expression will be useful to bound the mass at the queues of the probability function $f(y|x)$.
+
+\begin{lem} \label{lem:my_lemma}
+\begin{equation}
+C(\boldsymbol{\theta}; K, \tau) = Ke^{-r\tau} \left[ \dfrac{e^x - 1}{2} + \dfrac{1}{\pi} \int_0^{\infty} Re \left( \dfrac{\hat{f}(u - i; x) - \hat{f}(u; x)}{iu} \right) du \right]
+\end{equation}
+\end{lem}
+
+\begin{lem} \label{lem:my_lemma_2}
+\begin{equation}
+C(\boldsymbol{\theta}; K, \tau) \approx C_1 :=  Ke^{-r\tau} \left[ \dfrac{e^x - 1}{2} + \dfrac{1}{\pi} \sum_{1 - \kappa}^{\kappa} D_{m,k} \int_0^{\infty} Re \left( \dfrac{\hat{\phi}_{m,k}(u - i) - \hat{\phi}_{m,k}(u)}{iu} \right) du \right]
+\end{equation}
+\end{lem}
 
 \section{Multi Resolution Analysis and Shannon Wavelets}
 
@@ -553,10 +604,10 @@ $$ \psi_{m, k} = 2^{m/2}\psi(2^m x - k)$$
 \begin{definition} \label{def:wavelet_projection}
 \textbf{Wavelet Projection:} $P_m: L^2(\R) \rightarrow V_m$ is the projection from any function $f \in L^2(\R)$ into $V_m$:
 \begin{equation} 
-P_m f(x) = \sum_{j = -\infty}^{m-1} \sum_{k \in \Z} d_{j,k} \psi_{j, k}(x) = \sum_{k \in \Z} c_{m, k} \phi_{m, k}(x)
+P_m f(x) = \sum_{j = -\infty}^{m-1} \sum_{k \in \Z} d_{j,k} \psi_{j, k}(x) = \sum_{k \in \Z} D_{m,k} \phi_{m, k}(x)
 \end{equation}
 
-, where $d_{j, k} = \left\langle f,\psi_{j, k}\right\rangle$, $c_{m, k} = \left\langle f,\phi_{m, k}\right\rangle$, and $\left\langle f,g\right\rangle = \int_\R f(x) \overline{g(x)} dx$. Further, this projection converges in the $L^2$ norm as m tends to infinity \cite{tour}.
+, where $d_{j, k} = \left\langle f,\psi_{j, k}\right\rangle$, $D_{m,k} = \left\langle f,\phi_{m, k}\right\rangle$, and $\left\langle f,g\right\rangle = \int_\R f(x) \overline{g(x)} dx$. Further, this projection converges in the $L^2$ norm as m tends to infinity \cite{tour}.
 \end{definition}
 
 \subsection{Shannon Wavelets}
@@ -591,7 +642,7 @@ When using Shannon Wavelets to approximate a function with a truncated wavelet e
 
 \begin{definition} A function f is called band-limited if $\exists B \in \R^+$, with $B < \infty$ such that
 \begin{equation}
-f(x) = \dfrac{1}{2\pi} \int_{-B \pi}^{B \pi} \hat{f}(\omega) e^{i\omega x}d\omega 
+f(x) = \dfrac{1}{2\pi} \int_{-B \pi}^{B \pi} \hat{f}(u) e^{iu x}du 
 \end{equation}
 , that is, the support of $\hat{f}$ is contained in the interval $[-B, B]$. The parameter B is referred to as the bandwidth of f.
 \end{definition}
@@ -605,7 +656,7 @@ Combining this lemma with the $L^2$ convergence of the projections $P_m$ of $f$ 
 
 \begin{cor} The orthogonal projection $P_m$ of a Shannon MRA is equivalent to:
 \begin{equation}
-P_m f(x) = \dfrac{1}{2 \pi} \int_{-2^m \pi}^{2^m \pi} \hat{f}(\omega) e^{i \omega x} d \omega
+P_m f(x) = \dfrac{1}{2 \pi} \int_{-2^m \pi}^{2^m \pi} \hat{f}(u) e^{i u x} d u
 \end{equation}
 \end{cor}
 
@@ -613,17 +664,17 @@ Which, in turn, can be used to derive the following bound to the error of the or
 
 \begin{definition}Given $f \in L^2(\R)$, let $H(\xi)$ be:
 \begin{equation}
-H(\xi) := \dfrac{1}{2 \pi} \int_{|\omega| > \xi}\left|\hat{f}(\omega)\right| d\omega
+H(\xi) := \dfrac{1}{2 \pi} \int_{|u| > \xi}\left|\hat{f}(u)\right| du
 \end{equation}
 , the normalized mass of the two-side tails of $\hat{f}$ defined by $\xi$.
 \end{definition}
 
-\begin{lem} Let $\epsilon_m(x) := f(x) - P_m f(x)$ (the pointwise approximation error due to the projection of f into $V_m$). Then $|\epsilon_m(x)| \leq H(2^m \pi)$ \cite{mar17}
+\begin{lem} \label{lem:projection_error} Let $\epsilon_m(x) := f(x) - P_m f(x)$ (the pointwise approximation error due to the projection of f into $V_m$). Then $|\epsilon_m(x)| \leq H(2^m \pi)$ \cite{mar17}
 \end{lem}
 
 
 \subsection{Sinc Integral}\label{sec:sinc_integral}
-Shannon MRA and SWIFT require solving integrals of the form $\int_{\R} f(x) g(sinc(x)) dx$. In particular, when one wants to compute the density coefficients $c_{m,k}$ of equation \ref{def:wavelet_projection}, or as will be seen in section \ref{subsec:payoff_coefficients}, for the payoff coefficients computation, one needs to solve integrals of the form $\int_{\R} f(x) \overline{\phi(x)} dx$ and $\int_{\R} f(x) \phi(x) dx$ respectively.
+Shannon MRA and SWIFT require solving integrals of the form $\int_{\R} f(x) g(sinc(x)) dx$. In particular, when one wants to compute the density coefficients $D_{m,k}$ of equation \ref{def:wavelet_projection}, or as will be seen in section \ref{subsec:payoff_coefficients}, for the payoff coefficients computation, one needs to solve integrals of the form $\int_{\R} f(x) \overline{\phi(x)} dx$ and $\int_{\R} f(x) \phi(x) dx$ respectively.
 
 The simplest situation is to compute the sinc integral $Si(t) = \int_0^t{sinc(x) dx}$, but even for this case there is no closed form for the integral. 
 
@@ -633,7 +684,7 @@ There are two commonly used approaches as to how to numerically approximate thes
 \item{ \textbf{Coefficients via Parseval's Theorem: } This approach, shown in \cite{ort16} uses the fact that the $\phi_{m,k}$ has a very small support in the frequency domain (as shown in equation \ref{eq:sharp_freq}) together with Parseval's theorem, 
 $\langle f, g \rangle = \dfrac{1}{2 \pi}\langle \hat{f}, \hat{g} \rangle$. As the coefficients will be real numbers, we can take $\langle f, g \rangle = Re \left( \langle f, g \rangle \right) = Re \left( \dfrac{1}{2 \pi}\langle \hat{f}, \hat{g} \rangle \right)$. Entering the real part operator inside the integral sign and applying the change of variable $t = \dfrac{u}{2^{m+1} \pi}$ results in expression:
 \begin{equation}
-c_{m,k} = 2^{m/2} \int_{-1/2}^{1/2} Re \left(\hat{f}(2^{m+1} \pi t) e^{i2\pi k t} \right) dt
+D_{m,k} = 2^{m/2} \int_{-1/2}^{1/2} Re \left(\hat{f}(2^{m+1} \pi t) e^{i2\pi k t} \right) dt
 \end{equation} 
 Any quadrature can be applied to numerically compute the integral, but there are known techniques to rearrange the trapezoid and midpoint quadratures to compute all the coefficients with a single FFT \cite{mar17, flo20}.
 }
@@ -646,25 +697,28 @@ This cosine expansion was then truncated and converted to a summation via the co
 \begin{equation} \label{eq:density_v}
 \prod_{j=1}^{\iota} \cos \left(\frac{\pi x}{2^{j}}\right)=\frac{1}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} \cos \left(\frac{2 j-1}{2^{\iota}} \pi x\right)
 \end{equation}
-obtaining the first expression for the vieta coefficients $c_{m,k}^v$, where
+obtaining the first expression for the vieta coefficients $D_{m,k}^v$, where
 \begin{equation}
-c_{m,k} \approx c_{m, k}^{v}= \frac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} \int_{\mathbb{R}} f(x) \cos \left(\frac{2 j-1}{2^{\iota}} \pi\left(2^{m} x-k\right)\right) d x
+D_{m,k} \approx D_{m,k}^{v}= \frac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} \int_{\mathbb{R}} f(x) \cos \left(\frac{2 j-1}{2^{\iota}} \pi\left(2^{m} x-k\right)\right) d x
 \end{equation} \label{eq:density_vc}
-Finally, $f(x)$ would be replaced in the integral by defining $c_{m,k}^{v} = Re \left( c_{m,k}^{vc} \right)$. 
+Finally, $f(x)$ would be replaced in the integral by defining $D_{m,k}^{v} = Re \left( D_{m,k}^{vc} \right)$. 
 \begin{equation}
-c_{m,k}^{vc} =  \dfrac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} \int_{\mathbb{R}} f(x) e^{-i\dfrac{2 j-1}{2^{\iota}} \pi\left(2^{m} x-k\right) } d x
+D_{m,k}^{vc} =  \dfrac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} \int_{\mathbb{R}} f(x) e^{-i\dfrac{2 j-1}{2^{\iota}} \pi\left(2^{m} x-k\right) } d x
 \end{equation}
-Notice that when applying the $Re(\cdot)$ operator to $c_{m,k}^{cv}$, it can move freely across multiplications by real numbers and sumations and integrals, and expression \ref{eq:density_v} is ultimately recovered by using $Re \left(e^{-uix}\right) = cos(x)$. Finally, splitting the complex exponential into x-dependent and x-independent terms and replacing $\int_{\R} f(x) e^{-xAi}$ by $\hat{f}(A)$ yields:
+Notice that when applying the $Re(\cdot)$ operator to $D_{m,k}^{cv}$, it can move freely across multiplications by real numbers and sumations and integrals, and expression \ref{eq:density_v} is ultimately recovered by using $Re \left(e^{-uix}\right) = cos(x)$. Finally, splitting the complex exponential into x-dependent and x-independent terms and replacing $\int_{\R} f(x) e^{-xAi}$ by $\hat{f}(A)$ yields:
 \begin{definition} \textbf{Vieta coefficients approximation}\label{def:vieta}
 \begin{equation}
-c_{m,k}^{*} =  \dfrac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} Re \left( \hat{f} \left(u_j 2^{m} \right) e^{ik u_j} \right)
+D_{m,k}^{*} =  \dfrac{2^{m / 2}}{2^{\iota-1}} \sum_{j=1}^{2^{\iota-1}} Re \left( \hat{f} \left(u_j 2^{m} \right) e^{ik u_j} \right)
 \end{equation}
 , where $u_j = \dfrac{\pi}{2^{\iota}}(2j - 1)$
 \end{definition}
 }
 \end{itemize} 
 
-It is worth noting that, while the original construction of expression \ref{def:vieta} required a sumation of a power of 2 number of terms, it was revisited in \cite{mar17} and generalized by expressing the sinc in terms of its Fourier transform $$sinc(t) = Re(sinc(t) = \dfrac{1}{2\pi} \int_{-\pi}^{\pi} Re \left( e^{-iux} du \right) = \dfrac{1}{\pi} cos(ux) du$$
+It is worth noting that, while the original construction of expression \ref{def:vieta} required a sumation of a power of 2 number of terms, it was revisited in \cite{mar17} and generalized by expressing the sinc in terms of its Fourier transform 
+\begin{equation}
+sinc(t) = Re(sinc(t) = \dfrac{1}{2\pi} \int_{-\pi}^{\pi} Re \left( e^{-iux} du \right) = \dfrac{1}{\pi} \int_{0}^{\pi} cos(ux) du
+\end{equation}
 Then, if one uses a mid-point quadrature with J buckets and proceeds as in the initial derivation, expression \ref{def:vieta} is recovered, with the new term J being equivalent to the previous $2^{\iota -1}$ one.
 
 The following approximation error bound was given in \cite{mar17} for the mid-point quadrature, which will be of special interest in section when analysing the approximation error of pricing an option with the SWIFT algorithm in section \ref{subsec:approximation_error}:
@@ -685,54 +739,97 @@ max_{|x| \leq a} \left|sinc(x) - sinc^{*}(x; J) \right| \leq \dfrac{(\pi a)^2}{(
 
 The Shannon Wavelets Inverse Fourier Technique (SWIFT) combines the Shannon Wavelets and Multiresolution Analysis concepts with equation \ref{eq:integral_option_valuation} to provide a fast approximation to the value of a specific option v(x, t).
 
-The overall approximation can be summarized, as in \cite{mar17}, by a set of consecutive approximation steps to that equation, which are described below. The error related to each of these approximations will be analyzed in section \ref{subsec:error_price}.
+The overall approximation can be summarized, as in \cite{mar17}, by a set of consecutive approximation steps to that equation, which are described below. The error related to each of these approximations will be analyzed in section \ref{subsec:approximation_error}.
 
 \begin{itemize} \label{swift_steps}
-\item \textbf{Integration Range Truncation: } The integration over the whole real line is bounded to a finite interval so that it can be solved numerically:
-\begin{equation} \label{step:integration_truncation}
-v(x, t) \approx v_0(x, t) = \int_{|y| \leq c} f(y|x)v(y, T)dy
-\end{equation}
+
 \item \textbf{Wavelet Projection:} f is substituted by its Shannon wavelet projection at scale $m \in \Z$. By lemma \ref{def:wavelet_projection} this can be stated as:
 \begin{equation} \label{step:wavelet_projection}
-\begin{array}{rcl}
-v_0(x,t) \approx v_1(x,t) = \int_{|y| \leq c} f_1(y|x)v(y, T)dy \\
-f(y|x) \approx f_1(y|x) := P_mf(y|x) = \sum_{k \in \Z} c_{m, k}(x) \phi_{m,k}(y)
-\end{array}
+f(y|x) \approx f_1(y|x) := P_mf(y|x) = \sum_{k \in \Z} D_{m,k}(x) \phi_{m,k}(y)
 \end{equation}
-, with $c_{m, k}(x):=\langle f(\cdot | x), \phi_{m,k} \rangle$
+\begin{equation}
+v(x,t) \approx v_1(x,t) = e^{-r \tau} \int_{\R} f_1(y|x)v(y, T)dy
+\end{equation}
+, with $D_{m,k}(x):=\langle f(\cdot | x), \phi_{m,k} \rangle$
 \item \textbf{Series Truncation: } The set of values of k partaking the sum \ref{step:wavelet_projection} is reduced to a finite interval $[k1, k2]$
+\begin{equation}
+f_1(y|x) \approx f_2(y|x) = \sum_{k = k1}^{k2} D_{m,k}(x)\phi_{m,k}(y)
+\end{equation}
 \begin{equation} \label{step:series_truncation}
-\begin{array}{rcl}
-v_1(x,t) \approx v_2(x,t) = \int_{|y| \leq c} f_2(y|x)v(y, T)dy \\
-f_1(y|x) \approx f_2(y|x) = \sum_{k = k1}^{k2} c_{m,k}(x)\phi_{m,k}(y)
-\end{array}
+v_1(x,t) \approx v_2(x,t) = e^{-r \tau} \int_{\R} f_2(y|x)v(y, T)dy
 \end{equation}
 It is important to notice that the first approximation lets us express: 
 \begin{equation}
-f(2^{-m}k|x) \approx f_1(2^{-m}k|x) = 2^{m/2} c_{m,k}(x)
+f(2^{-m}k|x) \approx f_1(2^{-m}k|x) = 2^{m/2} D_{m,k}(x)
 \end{equation}
-, which quickly justifies that, for any given x, the density coefficients vanish as $|k|$ increases, because f vanishes at the queues. It is also worth noting that increasing m will result in this mapping being less favorable. That is, for each k, $c_{m,k}$ will be bounded by a point closer to the center of the density function, potentially requiring to increase the interval $[k1, k2]$.
+, which quickly justifies that, for any given x, the density coefficients vanish as $|k|$ increases, because f vanishes at the queues. It is also worth noting that increasing m will result in this mapping being less favorable. That is, for each k, $D_{m,k}$ will be bounded by a point closer to the center of the density function, potentially requiring to increase the interval $[k1, k2]$.
 \begin{remark}
 From this point onward a symmetric interval $[1 - \kappa, \kappa]$ will be considered both for convenience and for consistency with the code implementation.
 \end{remark}
 \item \textbf{Density Coefficients Approximation: }
-The integral required to compute $c_{m,k}$ is replaced by an approximation $c_{m,k}^{*}$ as discussed in section \ref{sec:sinc_integral}.
+The integral required to compute $D_{m,k}$ is replaced by an approximation $D_{m,k}^{*}$ as discussed in section \ref{sec:sinc_integral}.
 \begin{equation}
-\begin{array}{rcl}
-v_2(x,t) \approx v_3(x,t) = \int_{|y| \leq c} f_3(y|x)v(y, T)dy \\
-f_2 (y|x) \approx f_3(y | x) = \sum_{k = 1 - \kappa}^{\kappa} c_{m,k}^{*}(x)\phi_{m,k}(y)
-\end{array}
+f_2 (y|x) \approx f_3(y | x) = \sum_{k = 1 - \kappa}^{\kappa} D_{m,k}^{*}(x)\phi_{m,k}(y)
+\end{equation}
+\begin{equation}
+\begin{aligned}
+v_2(x,t) \approx v_3(x,t) & = e^{-r \tau} \int_{\R} f_3(y|x)v(y, T)dy \\
+&= e^{-r \tau} \sum_{k = 1 - \kappa}^{\kappa} D_{m,k}^{*}(x)  V_{m,k}dy
+\end{aligned}
+\end{equation}
+, where
+\begin{equation}
+V_{m,k} := \int_{\R} \phi_{m,k}(y) v(y, T)dy
 \end{equation}
 \item \textbf{Payoff Coefficients Approximation: }
+The integral required to compute $V_{m,k}$ is approximated in an analogous way as the integral to compute the density coefficients.
+\begin{equation}
+v_3(x,t) \approx v_4(x,t) = e^{-r \tau} \sum_{k = 1 - \kappa}^{\kappa} D_{m,k}^{*}(x) V_{m,k}^{*}
+\end{equation}
+
+For European Put options the payoff is given by equation \ref{eq:european_payoff}, and the last equation can be rearranged as
+
+\begin{equation}
+v_4(x,t) = K e^{-r \tau} \sum_{k = 1 - \kappa}^{\kappa} D_{m,k}^{*}(x) U_{m,k}^{*}
+\end{equation}
+, where $U_{m,k}^{*}$ is the approximation of 
+\begin{equation}
+U_{m,k} := \int_{\R} \phi_{m,k}(y)(1-e^{y})^{+} dy = \int_{-\infty}^{0} \phi_{m,k}(y)(1-e^{y}) dy
+\end{equation}
+
+This coefficients can be precomputed when initializing the SWIFT procedure and shared across different strikes and maturities, saving computation time.
+\begin{remark}
+The approximation $D_{m,k}^{*}$ depends on a parameter J that represents the number of intervals in the sinc approximation quadrature. The parameter used for payoff computation is independent from the one used for the density coefficients, and will be labeled $J_p$ and $J_d$ respectively.
+\end{remark}
 \end{itemize}
 
-Given a certain stochastic model for the underlying log returns price evolution over time and its density function f (equation \ref{eq:integral_option_valuation}) chosen to valuate the options and its correspondent characteristic function $\hat{f}(w) = \int_{\R} e^{-iwx} f(x) dx$, Shannon Wavelets Inverse Fourier Technique combines Shannon Wavelets and $\hat{f}$ to truncate f at a fixed approximation level m and provide a fast way to obtain the Fourier coefficients and recover the time domain ones through fast Fourier transform. (TODO: Cite)
+\begin{remark}
+This section and section \ref{subsec:approximation_error} follow closely section 3 of \cite{mar17}. There, the error analysis of the approximation process starts with a truncation of the integration space of equation  \ref{eq:integral_option_valuation}, for which an explicit error bound is not provided. Here, this error is accounted for in the payoff coefficients approximation step and its explicitly specified.
+\end{remark}
 
 \subsection{Approximation Error Analysis} \label{subsec:approximation_error}
+An approximation to the error $\epsilon_m$ bound for this error is presenter in \cite{mar17} for several L\'evy functions
+
+\begin{equation}
+\tau(c):= \int_{|y| > c} f(y|x) dy \leq TOL
+\end{equation}
 
 \begin{itemize}
+\item \textbf{Integration Range Truncation: }
+\begin{equation}
+\epsilon_{0} := 
+\left| v_0(\boldsymbol{\theta}; x, \tau) - v(\boldsymbol{\theta}; x, \tau) \right| = 
+\int_{|y| > c} 
+f(y|x) v(y, \tau) 
+dy \leq \tau(c) ||v(y, \tau)||_{\infty}
+\end{equation}
+For European put options $ ||v(y, \tau)||_{\infty} = ||K (1 - e^y)||_{\infty} = K $, so the error can be made arbitrarily small.
 \item \textbf{Wavelet Projection:}
+
+
+
 \item \textbf{Series Truncation: }
+
 \item \textbf{Density Coefficients Approximation: }
 
 Lemma \ref{lem:error_sinc} immediately allows to bound the error of approximating the Shannon wavelets by using $sinc^{*}$:
@@ -746,69 +843,128 @@ max_{|y| \leq c, 1 - \kappa \leq k \leq \kappa} \left| \phi_{m,k}(y) - \phi^{*}_
 \end{itemize}
 
 \begin{equation}
-c_{m,k}(\boldsymbol{\theta}; x) \approx c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \R \left[\hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
+D_{m,k}(\boldsymbol{\theta}; x) \approx c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \R \left[\hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
 \end{equation}
 
 As shown in \cite{ort16}, one can take the set $\{X_{m,k}\}$
 
-\subsection{Payoff Coefficients Fast Approximation} \label{subsec:payoff_coefficients}
+\subsection{Swift Parameters Choice}
 
-\subsection{Price Approximation Error Analysis} \label{subsec:error_price}
 
-asfd
+\subsection{Fast Coefficients Approximation} \label{subsec:payoff_coefficients}
 
-\subsection{Option Price}
+The last step of the density coefficients approximation requires the convergence of the Fourier 
+
+\begin{equation}
+Re \left( \int_{-\infty}^{0} (1 - e^x) e^{- i u x} dy \right) = Re \left(\dfrac{i}{u} + \delta(u) - \dfrac{i}{u + i} \right)
+\end{equation}
+
+
+\subsection{Quick Method for Multiple Strikes}
 
 \begin{lem} Option Price
 \begin{equation}
-v(\boldsymbol{\theta}; x, \tau) \approx v_1(\boldsymbol{\theta}; x, \tau) = e^{-r \tau} \int_{I_m} v(y, 0) f_m(\boldsymbol{\theta}; y|x) dy = e^{-r \tau} \sum_{k = k_1}^{k_2} c_{m, k}(\boldsymbol{\theta}; x) \cdot V_{m, k}
+v(\boldsymbol{\theta}; x, \tau) \approx v_1(\boldsymbol{\theta}; x, \tau) = e^{-r \tau} \int_{I_m} v(y, 0) f_m(\boldsymbol{\theta}; y|x) dy = e^{-r \tau} \sum_{k = k_1}^{k_2} D_{m,k}(\boldsymbol{\theta}; x) \cdot V_{m, k}
 \end{equation}
 , where $$V_{m, k} = \int_{I_m} v(y, 0) \phi_{m,k}(y)dy$$
 \end{lem}
 
 \subsection{Option Price Gradient}
 
+The SWIFT option pricing scheme will be used to calibrate different models by using an optimization problem, as described in chapter \ref{chap:optimization_problem}. For gradient-based optimization methods, the gradient of the pricing formula used will be required. Thus, one needs to compute the gradient of $v_4(\boldsymbol{\theta}; x, \tau)$
+
 \begin{lem} Option Price Gradient
 \begin{equation}
-\nabla_{\boldsymbol{\theta}} v(\boldsymbol{\theta}; x, \tau)  \approx v_1(\boldsymbol{\theta}; x, \tau) = e^{-r \tau} \int_{I_m} v(y, 0) \nabla_{\boldsymbol{\theta}} f_m(y|x) dy = e^{-r \tau} \sum_{k = k_1}^{k_2} \nabla_{\boldsymbol{\theta}} c_{m, k}(\boldsymbol{\theta}; x) \cdot V_{m, k}
+\nabla_{\boldsymbol{\theta}} v_4(\boldsymbol{\theta}; x, \tau) = e^{-r \tau} \sum_{k = k_1}^{k_2} V_{m, k}^{*} \nabla_{\boldsymbol{\theta}} D_{m,k}^{*}(\boldsymbol{\theta}; x)
 \end{equation}
-and
+with
 \begin{equation}
-\nabla_{\boldsymbol{\theta}} c_{m,k}(\boldsymbol{\theta}; x) \approx \nabla_{\boldsymbol{\theta}} c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1} \sum_{j=1}^{2^{J-1}}} \R \left[ 
-\boldsymbol{h} \cdot \hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
+\nabla_{\boldsymbol{\theta}} D_{m,k}^{*} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1} \sum_{j=1}^{2^{J-1}}} Re \left[ 
+\nabla_{\boldsymbol{\theta}} \hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
 \end{equation}
-, where $\boldsymbol{h}$
+\begin{proof}
+
+\end{proof}
 \end{lem}
 
+\section{Calibration as an optimization problem} \label{chap:optimization_problem}
+The goal of calibrating a model using market data, is to obtain model parameters that, when used for option valuation with an appropriate option valuation method, yield results similar to the real market option prices.
+
+Completely matching the market for all strikes and maturities is an over-determined problem so, generally, the calibration consists on a least squares minimization problem, using a set of option market prices at different strikes and maturities.
+
+In this section, the objective function of the optimization problem used by \cite{cui17} is presented, as it will be the one used in this study.
+
+\subsection{Objective Function}
+Let $C^*(K_i, \tau_i)$ be the market price of a European call option and
+ $C(\boldsymbol{\theta}; K_i, \tau_i)$ be the price at the same strikes and maturities obtained by using the Heston analytic formula \ref{eq:heston_analytic}. Let's also assume that we use n different options to calibrate the model, so 
+ $i \in [1,n] \subset \Z$
+ . Then:
+ \begin{definition} The calibration of the model is defined as the minimization problem $$min_{\boldsymbol{\theta} \in \R^5} (f(\boldsymbol{\theta}))$$ $$f(\boldsymbol{\theta}) := \dfrac{1}{2}||\boldsymbol{r}(\theta)||^2 = \dfrac{1}{2} \boldsymbol{r}^T(\boldsymbol{\theta})\boldsymbol{r}(\boldsymbol{\theta})$$
+\end{definition}
+
+, where $\boldsymbol{r}(\boldsymbol{\theta})$ is the n-dimensional vector of the residuals obtained when pricing the options considered for calibration using the model parameters. That is:
+
+\begin{align}
+\boldsymbol{r}(\boldsymbol{\theta}) := \left[r_1(\boldsymbol{\theta}), \ldots, r_n(\boldsymbol{\theta}) \right]^T, 
+&& r_i(\boldsymbol{\theta}) :=  C(\boldsymbol{\theta}; K_i, \tau_i) - C^*(K_i, \tau_i), && i = 1, \ldots, n
+\end{align}
+
+It is worth noting that the choice of a specific objective function (and appropriate strikes and maturities to use as calibration points) will intimately characterize the model. This can be used when trading to fit to the specific needs of trader, ultimately leading to different objective functions, as relative price differences instead of absolute ones, or log-likelihood based methods \cite{jac00} for, for example, hedging and market making \cite{chr02}. 
+
+One must be cautious, as this choice can lead to consistently giving more weight in the calibration to some set of options over the others. For example, according to \cite{cui17}, a commonly used minimization problem in industry for calibration consists on a least-squares problem similar to the one used in this study, using squared differences of the implied BS volatility of each calibration option, which can lead to giving more weight to OTM options in comparison with ITM ones.
+
+The choice of calibration strikes and maturities can also have a similar impact in the pricing model. For example, as an option gets closer to the expiration date, the variance of the price change until expiration of the underlying asset gets smaller. So, if one were to always use the same strikes across different expiries, then for long-term maturities the model would end up with a lot of calibration points ATM but would lack control points in regions where the density function of the underlying asset is still relevant, which could lead to serious pricing errors for mildly OTM and ITM options. For the short-term maturities, the relevant regions of the density function would have small number of sparse strikes and there would be a lot of strikes in very OTM and ITM regions, where prices are mostly close to 0 and to the discounted payout respectively, so they are less sensitive to the change in the model parameters and do not help much in calibration (the price derivatives with respect to the model parameters will be almost flat at those expiry-maturity points, so they will not affect much the optimization problem), effectively wasting computational power.
+
+As this study does not strive for any specific trading strategy, the choice of TODO: finish this and mention that the calibration objective function should be the same as the one used when valuating the model performance \cite{chr02}
+
+%% Anava per aqui1
+
+\section{Gradient Calculation} \label{sec:gradient}
+
+\begin{equation}
+\begin{aligned}
+\nabla C(\boldsymbol{\theta} ; K, \tau)=\frac{e^{-r \tau}}{\pi} &\left[\int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{s_{0}}}}{i u} \nabla \phi(\boldsymbol{\theta} ; u-i, \tau)\right) \mathrm{d} u\right.\\
+-&\left.K \int_{0}^{\infty} \operatorname{Re}\left(\frac{e^{-i u \log \frac{K}{s_{0}}}}{i u} \nabla \phi(\boldsymbol{\theta} ; u, \tau)\right) \mathrm{d} u\right]
+\end{aligned}
+\end{equation}
+, where 
+
+\subsubsection{Fast Calculation of integrands}
+All integrands are of the form: % PAGE 6, right column.
 
 \section{Formulation of the study}
 
-In this study a Heston model will be calibrated with a a Levenberg–Marquardt method with the objective function defined in \ref{eq:objective_function}. The calibration points will be obtained from real marked data and will be taken at expiries (TODO: add expiries when they are decided) to take into account both short-term and long-term maturities. The strikes will be taken at 0\%, $\pm 25 \% $, and $\pm 50 \%$ BS delta, as recommended in section \ref{sec:optimization_problem}.
+In this study a Heston model will be calibrated with a a Levenberg–Marquardt method with the objective function defined in \ref{eq:objective_function}. 
 
 The option valuation will be done with a SWIFT method, using the expression for the characteristic function and it's derivatives provided in \cite{cui17}. These derivatives are taken from an exact expression of the option price. In order for the difference between the real derivatives and the derivatives of the Shannon Wavelet approximation to be small, the approximation error will be restricted accordingly.
 
-\subsection{Robustness tests}
+\subsection{Robustness and general minima tests}
 There is no guarantee the objective function of the calibration problem is convex, so local minima problems can arise so, in order to both validate the robustness of the method proposed and assert its region of attraction, several convergence tests will be run.
 
-Consider a set of initial parameter configurations $\{\boldsymbol{\theta}^*\}$. Given an initial parameter vector $\boldsymbol{\theta}_{i}^*$ its correspondent call option prices will be computed at the control points $C(K_j, \tau_j)$. Then, random perturbations will be applied to each initial parameters vector to obtain a set of transformed parameters
-$\{\boldsymbol{\theta}_i\}$. The proposed calibration methodology will then be applied to these parameters and the convergence region will be studied.
+Consider a set of initial parameter configurations $\{\boldsymbol{\theta}^*\}$. Given an initial parameter vector $\boldsymbol{\theta}_{i}^*$ its correspondent call option prices will be computed at 40 control points $C(K_j, \tau_j)$.
+
+These points will be combination of 8 expiries at expiries (TODO: add expiries when they are decided) (to take into account both short-term and long-term maturities) and 8 strikes taken at 0\%, $\pm 25 \% $, and $\pm 50 \%$ BS delta, as recommended in section \ref{sec:optimization_problem} (TODO: make sure it's explained there). Then, random perturbations will be applied to each initial parameters vector to obtain a set of transformed parameters
+$\{\boldsymbol{\theta}_i\}$. The proposed calibration methodology will then be applied to these parameters and the convergence region and local optimization minimums will be studied.
+
 
 \subsection{Speed tests}
-The SWIFT approach should drastically speed up the computation time with respect to the original option valuation method used in the study of Cui et al. \cite{cui17}. In order to quantify this speed improvement several sets of Heston model parameters and market parameters (at both long and short term expiries and OTM and ITM options, to provide an heterogeneous sample of contracts) will be generated. For these inputs, the price of their correspondent option price will be computed using both the swift method and a simple quadrature numerical integration as in \cite{cui17}.
+The SWIFT approach with all its speed-up techniques should improve the computation time with respect to the original option valuation method used in the study of Cui et al. \cite{cui17}, and this speed-up should. In order to quantify this speed improvement several sets of Heston model parameters and market parameters (at both long and short term expiries and OTM and ITM options, to provide an heterogeneous sample of contracts) will be generated. For these inputs, the price of their correspondent option price will be computed using both the swift method and a simple quadrature numerical integration as in \cite{cui17}.
 
 \subsection{Fit tests}
-The Heston model should capture the market dynamics like skewness and high-kurtosis better than other simpler models like Black and Scholes. Comparing directly the goodness-of-fit of a Heston model and a BS one should show the clear dominance of the first one, but this could be dominated by the fact that BS has only 1 model parameter while Heston has 5.
+The Heston model should capture the market dynamics like skewness and high-kurtosis better than other simpler models like Black and Scholes. Comparing directly the goodness-of-fit of a Heston model and a BS one should show the clear dominance of the first one.
 
-This simple test above will be run, but it is of more interest to also compare the performance of a hibrid BS model, where the BS volatilities are computed at specific control points and the whole theoretic volatility smile is computed from them. To render both BS and Heston comparable, 5 BS volatility smile cutoff points will be chosen. These will be chosen for the same expiry (in hopes that the BS cutoff points can cover enough of the volatility smile). For this scenario, several Heston calibration points will be chosen and both models will be calibrated using the same minimum squares optimization problem and Levenberg–Marquardt method.
+The calibration points will be obtained from real market data and will be taken at 
 
 Christoffersen and Jacobs \cite{chr02} show the importance of using the same objective function for both model calibration and goodness-of-fit tests, and to use the same one across the different models we want to compare. If, instead, the vanilla BS model was calibrated by using a volatility based method, one could reduce the fitness over the evaluation objective function.
-
-\subsection{General minimum}
-Finally we will compare the results with the results obtained from a derivative-free optimization scheme that, even if slower, will avoid local minimums if repeated enough times.
 
 \section{Numerical Results}
 
 \section{Conclusions}
+
+\section{Further Research}
+Heston model clearly shows an improved fit with respect to the BS one, but this improvement could be mainly explained by the fact that BS has only 1 model parameter while Heston has 5.
+
+In order to give a fair comparison between both models, it would be of to also compare the performance of a hybrid BS model that can deal with the volatility smile to some extent. This model would be defined by 5 BS volatilities $\boldsymbol{\sigma} = (\sigma_1, \sigma_2, \sigma_3, \sigma_4, \sigma_5)$, computed at specific control points in the delta space (for example at $\pm50\%$, $\pm25\%$, and $0\%$ delta, like in the original fitness test). Then, the volatility at any delta would be defined by an interpolation scheme, like natural splines.
 
 \section{Bibliography}
 
