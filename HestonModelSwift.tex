@@ -705,7 +705,7 @@ D_{m,k} = 2^{m/2} \int_{-1/2}^{1/2} Re \left(\hat{f}(2^{m+1} \pi t) e^{i2\pi k t
 Any quadrature can be applied to numerically compute the integral, but there are known techniques to rearrange the trapezoid and midpoint quadratures to compute all the coefficients with a single FFT \cite{mar17, flo20}.
 }
 \item { \textbf{Coefficients via Sinc approximations: }
-An equivalent expression of the sinc function was presented in \cite{ort16} as a cosine expansion using Vieta's formula: 
+An equivalent expression of the sinc function was presented in \cite{Ortiz-Gracia2016} as a cosine expansion using Vieta's formula: 
 \begin{equation}
 sinc(x) = \prod_{j = 1}^{\infty} cos \left( \dfrac{\pi x}{r^j} \right)
 \end{equation}
@@ -957,7 +957,7 @@ max_{|y| \leq c, 1 - \kappa \leq k \leq \kappa} \left| \phi_{m,k}(y) - \phi^{*}_
 D_{m,k}(\boldsymbol{\theta}; x) \approx c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \R \left[\hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
 \end{equation}
 
-As shown in \cite{ort16}, one can take the set $\{X_{m,k}\}$
+As shown in \cite{Ortiz-Gracia2016}, one can take the set $\{X_{m,k}\}$
 
 \subsection{Swift Parameters Choice}
 
