@@ -226,8 +226,9 @@ public:
         // We need to evaluate everything at u1 = u - i and u2 = u.
         double sigma_times_rho = sigma * rho; // TAG: PRECOMPUTE
         std::complex<double> xi = kappa - sigma_times_rho * ui; // xi = kappa - sigma * rho * u * i
+        std::complex<double> xi2 = xi * xi;
         std::complex<double> m = ui + u_squared; // m = u * i + u^2;
-        std::complex<double> d = sqrt(pow(xi, 2) + m * m_sigma_squared); // d = sqrt(pow(xi,2) + m*pow(sigma,2));
+        std::complex<double> d = sqrt(xi2 + m * m_sigma_squared); // d = sqrt(pow(xi,2) + m*pow(sigma,2));
 
         // g = exp(-kappa * b * rho * T * u * i / sigma);
         double kappa_v_bar_rho_T = kappa * v_bar * rho * T;  // TAG: PRECOMPUTE

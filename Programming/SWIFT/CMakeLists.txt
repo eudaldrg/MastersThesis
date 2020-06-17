@@ -18,6 +18,8 @@ set(SOURCES
         my_math.h
         option_contracts.cpp
         option_contracts.h
+        payoff_coefficients_calculators.cpp
+        payoff_coefficients_calculators.h
         swift.cpp
         swift.h
         )
@@ -36,7 +38,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${BOOST_STATIC_LIBRARIES})
 add_subdirectory(UnitTests)
 #add_subdirectory(Z_Exec_CharReports)
 #add_subdirectory(Z_Exec_CuiExperiment)
-#add_subdirectory(Z_Exec_CuiExperimentOriginal)
+add_subdirectory(Z_Exec_CuiExperimentOriginal)
 #add_subdirectory(Z_Exec_CallibrateBS)
 add_subdirectory(Z_Exec_OrtizExperimentOriginal)
+add_subdirectory(Z_Exec_ProfileAgainstOrtiz)
 #add_subdirectory(Z_Exec_HestonPricing)

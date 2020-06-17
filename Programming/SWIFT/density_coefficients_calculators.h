@@ -56,8 +56,6 @@ public:
 
     [[nodiscard]] std::vector<double> GetCMCoefs(double x) const final;
     [[nodiscard]] std::vector<std::vector<double>> GetGradientCMCoefs(double x) const final;
-
-    static std::vector<std::complex<double>> MY_IDFT(std::vector<std::complex<double>> const& X, bool fast = false);
 };
 
 class NewPaperExplicitCalculator : public CMCalculator

@@ -180,11 +180,12 @@ HestonIntegrandsMN GetHestonIntegrandsMN(double u, double a, double b, double c,
 }
 
 // Heston pricer: (parameter, observation, dim_p, dim_x, arguments)
-void GetHestonPrice(double *p, double *x, int /*m*/, int n_observations, MarketParameters* data_ptr)
+void GetHestonPrice(double *p, double *x, int /*m*/, int n_observations, void* data_ptr_void)
 {
     int l;
 
     // retrieve market parameters
+    MarketParameters* data_ptr = static_cast<MarketParameters*>(data_ptr_void);
     double S = data_ptr->S;
     double r = data_ptr->r;
 
@@ -738,9 +739,39 @@ int main2() {
     return 0;
 } // The End
 
+void main3()
+{
+    int m = 5;  // # of parameters
+    MarketParameters market_parameters;
+
+    // spot and interest rate
+    market_parameters.S = 100;
+    market_parameters.r = 0;
+    market_parameters.K[1] = 100;
+    market_parameters.T[1] = 45;
+
+    //// END INIT MARKET PARAMETERS
+
+    // you may set up your optimal model parameters here:
+    // set optimal model parameters  |  Meaning
+    double kappa = 1.5768;           // |  mean reversion rate
+    double v_bar = 0.0398;          // |  long term variance
+    double sigma = 0.5751;          // |  variance of volatility
+    double rho = -0.5711;            // |  correlation between spot and volatility
+    double v0 = 0.0175;             // |  initial variance
+
+    double pstar[5];
+    pstar[0] = kappa; pstar[1] = v_bar; pstar[2] = sigma; pstar[3] = rho; pstar[4] = v0;
+
+    // compute the market_parameters observations with pstar
+    double x[1];
+    GetHestonPrice(pstar, x, m, 1, &market_parameters);
+    std::cout << "Price " << x[0] << std::endl;
+}
+
 int main()
 {
-    return main2();
+    main3();
 }
 
 /////// RESULTS ////////

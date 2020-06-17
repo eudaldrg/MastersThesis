@@ -42,6 +42,7 @@ public:
     mutable SwiftParameters m_params;
     Distribution const& m_distribution;
     OptionContract const& m_option_contract;
+
 };
 
 inline double Rect(double x)

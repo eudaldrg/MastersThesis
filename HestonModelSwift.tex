@@ -189,9 +189,9 @@ $t$ will refer to the time at which the option is being valuated
 
 $T$ will be the expiration time. Given a time-dependent variable $Var$, $Var_t$ will refer to the value of that variable at time $t$ (respectively with $T$). 
 
-$S, K$ will refer to the underlying and the strike prices respectively.
-
 $\tau := T - t$
+
+$S, K$ will refer to the underlying and the strike prices respectively.
 
 $r$ will refer to the risk-free interest rate.
 
@@ -237,8 +237,8 @@ In order to price an option that expires at some point in the future, one usuall
 \subsection{No arbitrage and risk neutrality assumptions.}
 
 Put-Call parity (that's why we only talk about Calls in this article)
-Model
-Log-Returns = $\dfrac{log(S_T)}{S_t}$
+
+Model Log-Returns = $\dfrac{log(S_T)}{S_t}$
 
 \subsection{European Option Valuation} \label{subsec:european_option_valuation}
 The payoff of some option contracts, like Bermudan, Asian or American options, depends on the price of the underlying asset at several points in time, or even through all its life. European options payoff, on the other hand, only depends on the final price of the underlying asset on the moment of expiration of the contract ($S_T$). 
@@ -260,7 +260,11 @@ x = ln \left(\dfrac{S_t}{K} \right)
 
 Given this maturity state variable choice, one can express the payoff of a European put option as
 \begin{equation} \label{eq:european_payoff}
-v(y, T) := K \cdot (1 - e^y)^{+} := K \cdot max(1 - e^y, 0)
+v_{K}(y, 0) := K \cdot (1 - e^y)^{+} := K \cdot max(1 - e^y, 0)
+\end{equation}
+This expression has a lineal dependency with the strike of the option, so one can define the strike-free payoff:
+\begin{equation}
+g(y) := (1 - e^y)^{+} = \dfrac{v_{K}(y, 0)}{K}
 \end{equation}
 
 \begin{remark}
@@ -298,28 +302,28 @@ $$
 Note that any L\'evy process can be completely characterized by the triplet $(a, \sigma, \Pi)$, which represent a linear drift, a Brownian motion, and a L'evy jump process respectively.
 
 L'evy models in option pricing typically consider x and y as in expressions \ref{eq:x} and \ref{eq:y} and let $X_t := x$, $X_T := y$, and model the log returns evolution by a L'evy process. Then $\hat{f}(y|x) = \hat{f}(X_T|X_t)$ can be obtained through formula \ref{levy_khin}:
-\begin{equation}
+\begin{equation}\label{eq:levy_char}
 \hat{f}_{y}(u; x) := 
 \E\left[e^{iu X_T}\right] = 
 \E\left[e^{iu (X_t + X_{T-t})}\right] = 
-e^{-iu x}e^{-i u \mu T + T \psi_L(-u)} = 
+e^{-iu x}e^{-i u \mu_L T + T \psi_L(-u)} = 
 e^{-iu x}\hat{f}(u) = 
 \hat{f}_{y - x}(u)
 \end{equation}
 
-, where $\mu:= r - \psi_L(-i)$ is a drift correction term and $\psi_L(u)$is the characteristic L\'evy exponent of the underlying log-returns process.
+, where $\mu_L:= r - \psi_L(-i)$ is a drift correction term and $\psi_L(u)$is the characteristic L\'evy exponent of the underlying log-returns process.
 
 \subsection{Black-Scholes-Merton Model} \label{subsec:bs}
 
 A particular case of L\'evi processes is the widely used BS model, originally presented in \cite{bs73} by using the following stochastic differential equation:
 \begin{definition} BS model price equation:
 \begin{equation}
-dS_t = (r - q) S_t + \sigma S_t W_t
+dS_t = \mu S_t + \sigma S_t W_t
 \end{equation}
-, where $W_t$ is a Brownian Motion process and $\sigma$ is called the BS volatility and models defines the standard deviation of the log-returns.
+, where $W_t$ is a Brownian Motion process, $\sigma$ is called the BS volatility, and $\mu$ describes the drift of the underlying log returns and is usually considered $\mu = r - q$ for divident-free products.
 \end{definition}
 
-For European options, equation \ref{eq:integral_option_valuation} can be solved analytically, and the well-known BS valuation formula can be obtained:
+This model assumes the underlying process $S_t$ follows a lognormal distribution with standard deviation $\sigma$ and, for European options, equation \ref{eq:integral_option_valuation} can be solved analytically, obtaining the well-known BS valuation formula:
 
 \begin{lem} \textbf{Black-Scholes-Merton valuation formula for European Call Options}:
 \begin{align}
@@ -330,7 +334,7 @@ PV(K) &=Ke^{-r\tau}
 \end{align}
 \end{lem}
 
-For the BS model, $\hat{f}(u)$ can be obtained by setting $\psi_L (u) = -\dfrac{\sigma^2}{2}u^2$ (for a given $\sigma > 0$, which is called the BS implied volatility) resulting in
+The characteristic function $\hat{f}(u)$ can be obtained by setting $\psi_L (u) = -\dfrac{\sigma^2}{2}u^2$ in equation \ref{eq:levy_char} resulting in:
 \begin{definition} \textbf{BS characteristic function:}
 \begin{equation}
 \hat{f}_{BS}(u) = exp{\left(-iu \left( r-q - \dfrac{1}{2}\sigma^2 \right) \tau - \dfrac{\sigma^2 u^2 \tau}{2} \right)}
@@ -338,9 +342,19 @@ For the BS model, $\hat{f}(u)$ can be obtained by setting $\psi_L (u) = -\dfrac{
 \end{definition}
 
 \subsection{Implied Volatility smile and surface} \label{subsec:smile_and_surf}
-If the GBM process modeled accurately real market prices, the BS model could be calibrated using several strikes to obtain a single implied volatility value, which could then be used to price any option of a given strike and maturity. 
+If the GBM process modeled accurately real market prices, the BS model could be calibrated using several strikes to obtain a single implied volatility value, and that value would be a good estimator of the standard deviation of the historical standard deviation of the lognormal distribution of the underlying returns (which is called the historical BS volatility). This volatility could then be used to price any option of a given strike and maturity. 
 
-In real markets, if one chooses a fixed expiry and calibrates m different models using m different strikes, the obtained implied volatilities will probably differ. The exact shape will depend on the underlying, and can vary due to several reasons. Figures \ref{fig:currency_smile} and \ref{fig:equity_smile} show the evolution of the implied volatility over strike for foreign currency and equity markets. This strike evolution is traditionally called volatily smile (or, sometimes, volatility skew for equity markets). One could use equation \ref{eq:integral_option_valuation} and derive a numerical approximation  
+In real markets, if one chooses a fixed expiry and calibrates a set  m different models using m different strikes $\{K_i\}$, the obtained implied volatilities $\{\sigma_i\}$ will probably differ. Further, if one estimates the historical volatility $\sigma_H$ from the historical log-returns, the obtained value may not coincide with any of the obtained implied volatilities.
+
+If one were to plot the implied $\sigma_i$ over $K_i$, one would obtain a result similar to the ones in Figure \ref{fig:smile}, but the exact shape would depend on the underlying (and change over time). This strike evolution is traditionally called volatily smile (though it can have different names depending on the shape it takes, like volatility skew for equity markets).
+
+There are several justifications as to why such smiles exist. Some of them involve limitations in the GBM description of the underlying stock returns, but some appeared after significant events, like the volatility skew in equity option markets, which only appeared after the stock market crash of 1987 \cite{hul09}. Their significance is better described with the concept of implied distribution.
+
+If one assumes that the risk-neutrality and no-arbritage concepts hold true, then the real market option prices should follow from specifying a distribution function $f(y|x)$ and solving equation \ref{eq:integral_option_valuation}. One can then estimate the shape of the implied distribution $f(y|x)_I$ that would better match the option prices of a specific product and expiry (there are several techniques to do it, some described in \cite{jac96, pea00}). As can be seen in Figure \ref{fig:implied_distribution}, the upward trend in implied volatility for the deep ITM and OTM options in currency markets is translated into the implied distribution having fatter tails, and the upward trend for small strikes in equity markets translates into a distribution with higher stock market crash probabilities.
+
+A similar effect happens when one fixes a strike price and computes its implied volatility over serveral expiries. The shape that results from plotting the implied volatility smile over time is called term structure and, when one plots the implied volatility over both strike price and time, one gets the so-called implied volatility surface.
+
+The shape of the implied volatility surface holds certain information about the historical performances of the underlying. In particular, the distribution with fat tails implied by the currency market option prices describes the historical returns of the options underlying better than the GBM \cite{hul09}. This shows the inedequacies of the GBM model and the need for better theoretic descriptions of the underlying returns.
 
 \begin{figure}
 \centering
@@ -381,7 +395,7 @@ In real markets, if one chooses a fixed expiry and calibrates m different models
 
 \section{Heston Model} \label{chap:heston_model}
 
-The Black and Scholes model presented in section \ref{subsec:bs} fails to capture essential well-known properties of the real world market dynamics of the log returns distributions, as its high kurtosis, its negative skew, the correlation between the underlying price and its volatility... As well as the risk premium investors give deep ITM or OTM options, which result in the volatility smile.
+The Black and Scholes model presented in section \ref{subsec:bs} fails to capture essential well-known properties of the real world market dynamics of the underlying return distributions, as its high kurtosis, its negative skew, the correlation between the underlying price and its volatility... As well as the risk premium investors give deep ITM or OTM options, which result in the volatility discussed in section \ref{subsec:smile_and_surf}.
 
 To address that, several variations of this model have been proposed since it was introduced. Some of them, called stochastic volatility (SV) models, considered all the real world dynamics mentioned above and treated both the underlying price and its volatility as (potentially correlated) stochastic processes.
 
@@ -612,7 +626,9 @@ P_m f(x) = \sum_{j = -\infty}^{m-1} \sum_{k \in \Z} d_{j,k} \psi_{j, k}(x) = \su
 
 \subsection{Shannon Wavelets}
 Claude Shannon introduced the usage of the cardinal sine function for information modeling \cite{sha49}:
-$$ sinc(x) := \left\{ \begin{array}{rcl} \dfrac{sin(\pi x)}{\pi x} & \mbox{for} & x \neq 0 \\ 1 & \mbox{for} & x = 0 \end{array}\right.$$
+\begin{equation}
+sinc(x) := \left\{ \begin{array}{rcl} \dfrac{sin(\pi x)}{\pi x} & \mbox{for} & x \neq 0 \\ 1 & \mbox{for} & x = 0 \end{array}\right.
+\end{equation}
 
 This function serves as the father wavelet from which we obtain the families $\phi_{m, k}$ and $\psi_{m_k}$:
 \begin{equation}
@@ -787,14 +803,14 @@ The integral required to compute $V_{m,k}$ is approximated in an analogous way a
 v_3(x,t) \approx v_4(x,t) = e^{-r \tau} \sum_{k = 1 - \kappa}^{\kappa} D_{m,k}^{*}(x) V_{m,k}^{*}
 \end{equation}
 
-For European Put options the payoff is given by equation \ref{eq:european_payoff}, and the last equation can be rearranged as
+For European Put options the payoff is given by equation \ref{eq:european_payoff}, and the last equation can be rearranged using the strike-free payoff as
 
 \begin{equation}
 v_4(x,t) = K e^{-r \tau} \sum_{k = 1 - \kappa}^{\kappa} D_{m,k}^{*}(x) U_{m,k}^{*}
 \end{equation}
 , where $U_{m,k}^{*}$ is the approximation of 
-\begin{equation}
-U_{m,k} := \int_{\R} \phi_{m,k}(y)(1-e^{y})^{+} dy = \int_{-\infty}^{0} \phi_{m,k}(y)(1-e^{y}) dy
+\begin{equation} \label{eq:compact_payoffs}
+U_{m,k} := \int_{\R} \phi_{m,k}(y)g(y) dy = \int_{-\infty}^{0} \phi_{m,k}(y)(1-e^{y}) dy
 \end{equation}
 
 This coefficients can be precomputed when initializing the SWIFT procedure and shared across different strikes and maturities, saving computation time.
@@ -807,60 +823,67 @@ The approximation $D_{m,k}^{*}$ depends on a parameter J that represents the num
 This section and section \ref{subsec:approximation_error} follow closely section 3 of \cite{mar17}. There, the error analysis of the approximation process starts with a truncation of the integration space of equation  \ref{eq:integral_option_valuation}, for which an explicit error bound is not provided. Here, this error is accounted for in the payoff coefficients approximation step and its explicitly specified.
 \end{remark}
 
-\subsection{Approximation Error Analysis} \label{subsec:approximation_error}
-An approximation to the error $\epsilon_m$ bound for this error is presenter in \cite{mar17} for several L\'evy functions
+\subsection{Payoff Coefficients Approximation} \label{subsec:payoff_coefficients}
+One should note that the same procedure as the approximation $D_{m,k} \approx D_{m,k}^{*}$ (discussed in section \ref{sec:sinc_integral}) can be used for the payoff coefficients approximation. Starting from expression \ref{eq:compact_payoffs}, and applying the same sinc approximation as in the density coefficients, for european puts we obtain expression:
 
 \begin{equation}
-\tau(c):= \int_{|y| > c} f(y|x) dy \leq TOL
+U_{m,k} \approx \dfrac{2^{m/2}}{J_p}\sum_{j=1}^{J} e^{i \dfrac{2j - 1}{N_p} \pi k} \int_{\R} (1 - e^x)^{+} e^{-i \dfrac{2j - 1}{N_p} \pi x}
 \end{equation}
 
-\begin{itemize}
-\item \textbf{Integration Range Truncation: }
+The last step of the density coefficients approximation requires the convergence of the Fourier transform of the payoff coefficients which, in general, is not guaranteed. In particular the Fourier transform of the strike-free payoff of an european put option can only be described by the use of generalized functions:
+\begin{lem} The Fourier transform of the strike-free Europan put payoff is given by:
 \begin{equation}
-\epsilon_{0} := 
-\left| v_0(\boldsymbol{\theta}; x, \tau) - v(\boldsymbol{\theta}; x, \tau) \right| = 
-\int_{|y| > c} 
-f(y|x) v(y, \tau) 
-dy \leq \tau(c) ||v(y, \tau)||_{\infty}
+\int_{\R} (1 - e^x)^{+} e^{- i u x} dx = \int_{-\infty}^{0} (1 - e^x) e^{- i u x} dx = \dfrac{i}{u} + \delta(u) - \dfrac{i}{u + i}
 \end{equation}
-For European put options $ ||v(y, \tau)||_{\infty} = ||K (1 - e^y)||_{\infty} = K $, so the error can be made arbitrarily small.
-\item \textbf{Wavelet Projection:}
-
-
-
-\item \textbf{Series Truncation: }
-
-\item \textbf{Density Coefficients Approximation: }
-
-Lemma \ref{lem:error_sinc} immediately allows to bound the error of approximating the Shannon wavelets by using $sinc^{*}$:
-\begin{cor} \label{cor:error_shannon_wavelets} \textbf{Shannon Wavelet Approximation Error:}
-For a fixed $J \geq \dfrac{\pi}{2}(2^m c + k)$
-\begin{equation}
-max_{|y| \leq c, 1 - \kappa \leq k \leq \kappa} \left| \phi_{m,k}(y) - \phi^{*}_{m,k}(y) \right| \leq 2^{m/2}\dfrac{(\pi(2^m c + \kappa))^2}{(4J)^2 - (\pi(2^m c + \kappa))^2}
-\end{equation}
-\end{cor}
-\item \textbf{Payoff Coefficients Approximation: }
-\end{itemize}
+, where $\delta(u)$ is the Dirac delta distribution.
+\begin{proof}
 
 \begin{equation}
-D_{m,k}(\boldsymbol{\theta}; x) \approx c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \R \left[\hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
+\int_{\R} (1 - e^x)^{+} e^{- i u x} dx = \int_{-\infty}^{0} (1 - e^x) e^{- i u x} dx = 
 \end{equation}
+\end{proof}
+\end{lem}
 
-As shown in \cite{ort16}, one can take the set $\{X_{m,k}\}$
+Typically, the SWITF algorithm implementations deal with this situation by initially bounding integral \ref{eq:integral_option_valuation} to a finite interval. Here, for simplicity a symmetric interval (-c, c) will be considered, reaching expression:
 
-\subsection{Swift Parameters Choice}
-
-
-\subsection{Fast Coefficients Approximation} \label{subsec:payoff_coefficients}
-
-The last step of the density coefficients approximation requires the convergence of the Fourier 
-
+\begin{definition} \textbf{Strike-free payoff coefficients approximation}
 \begin{equation}
-Re \left( \int_{-\infty}^{0} (1 - e^x) e^{- i u x} dy \right) = Re \left(\dfrac{i}{u} + \delta(u) - \dfrac{i}{u + i} \right)
+U_{m,k} \approx U_{m,k}^{*}(-c, c) := \dfrac{2^{m/2}}{J_p}\sum_{j=1}^{J_p} Re \left(e^{i \dfrac{2j - 1}{N_p} \pi k} I_{j}(c)\right)
+\end{equation}
+, where
+\begin{equation}
+I_{j}(c) := \int_{|y| \leq c} g(y) e^{-i \dfrac{2j - 1}{N_p} \pi y} dy
+\end{equation}
+And its analytic expression can be easily computed for European options and is provided in appendix \ref{app:payoff_integral}.
+\end{definition}
+
+One can easily see that the value of $I(c)$ will be periodic on c. In general, all the sinc approximations used in the SWIFT algorithm are periodic, which can give rise to boundary issues and undervaluation of option prices when the option strikes approach the boundary of $(-c, c)$. This issue also appears in the COS option pricing method \cite{Fang2008}, another Fourier-transform-based option pricing method closely rleated to the SWIFT method, and is discussed by Maree et al. \cite{mar17}. In their study, they use the independence between the parameters regulating the payoff integral domain (c) and the one regulating the wavelet series truncation ($\kappa$) to carefully choose a value for c to avoid this problem.
+
+\subsection{Fast Computation of the Density and Payoff Coefficients}
+Starting with a general expression of the sumation term that appears in both the density and payoff coefficient approximation:
+\begin{equation}
+f_k = \sum_{j=1}^J g_j e^{i \dfrac{2j - 1}{2J}\pi k}
+\end{equation}
+One can extend it by defining $g_j = 0$ for $j = 0$ and $J < j < 2J$ and take the j-independent terms outside of the sumation, obtaining:
+\begin{equation}
+f_k = e^{\dfrac{-i \pi k}{2J}}\sum_{j=0}^{2J - 1} g_j e^{i \dfrac{2j\pi k}{2J}}
 \end{equation}
 
+This last sumation expression coincides with the Discrete Fourier Transform (DFT) of length 2J of $\{g_j\}$, and the computation of all the values $f_k$ can then be sped up by using a Fast Fourier Transform (FFT) implementation. 
 
-\subsection{Quick Method for Multiple Strikes}
+\begin{remark}
+Note that computing the density or payoff coefficients imposes a restriction on the wavelet series truncation parameter $2 \kappa < J$
+\end{remark}
+
+In all numeric examples in this article the C library FFTW will be used to compute any FFT.
+
+\subsection{Alternative Method for Multiple Strikes}
+
+
+If one were to use the SWIFT pricing 
+A great property of the SWIFT method is that it allows to reuse most of its calculations to price several strikes for L\'evy and Heston models
+
+Change the strike dependency from the density to the payoff coefficients
 
 \begin{lem} Option Price
 \begin{equation}
@@ -886,6 +909,57 @@ with
 
 \end{proof}
 \end{lem}
+
+\subsection{Approximation Error Analysis and SWIFT Parameter Choice} \label{subsec:approximation_error}
+
+\begin{itemize}
+\item \textbf{Integration Range Truncation: }
+\begin{equation}
+\epsilon_{0} := 
+\left| v_0(\boldsymbol{\theta}; x, \tau) - v(\boldsymbol{\theta}; x, \tau) \right| = 
+\int_{|y| > c} 
+f(y|x) v(y, \tau) 
+dy \leq \tau(c) ||v(y, \tau)||_{\infty}
+\end{equation}
+For European put options $ ||v(y, \tau)||_{\infty} = ||K (1 - e^y)||_{\infty} = K $, so the error can be made arbitrarily small.
+\item \textbf{Wavelet Projection:}
+A bound for $\epsilon_m := f(y|x) - P_mf(y|x)$ is provided in lemma \ref{lem:error_sinc}. An approximation to this bound, which converges exponentially with respect to $2^m$ is presented in \cite{mar17} for several L\'evy functions which, for the GBM process is given by:
+\begin{equation}
+\epsilon_m \approx \dfrac{(2^m \pi)^{-1}}{4 \pi \tau}\left( \left| \hat{f}(-2^m;x) \right| + \left| \hat{f}(2^m;x)\right| \right)
+\end{equation}
+
+TODO: Heston
+
+This provides an iterative method to try increasing values of m until the error $\epsilon_m$ falls under a desired threshold.
+
+\item \textbf{Series Truncation: }
+
+
+
+\item \textbf{Density Coefficients Approximation: }
+
+Lemma \ref{lem:error_sinc} immediately allows to bound the error of approximating the Shannon wavelets by using $sinc^{*}$:
+\begin{cor} \label{cor:error_shannon_wavelets} \textbf{Shannon Wavelet Approximation Error:}
+For a fixed $J \geq \dfrac{\pi}{2}(2^m c + k)$
+\begin{equation}
+max_{|y| \leq c, 1 - \kappa \leq k \leq \kappa} \left| \phi_{m,k}(y) - \phi^{*}_{m,k}(y) \right| \leq 2^{m/2}\dfrac{(\pi(2^m c + \kappa))^2}{(4J)^2 - (\pi(2^m c + \kappa))^2}
+\end{equation}
+\end{cor}
+\item \textbf{Payoff Coefficients Approximation: }
+
+\begin{equation}
+\tau(c):= \int_{|y| > c} f(y|x) dy \leq TOL
+\end{equation}
+
+\end{itemize}
+
+\begin{equation}
+D_{m,k}(\boldsymbol{\theta}; x) \approx c^*_{m,k} (\boldsymbol{\theta}; x) = \dfrac{2^{m/2}}{2^{J-1}} \sum_{j=1}^{2^{J-1}} \R \left[\hat{f}\left(\boldsymbol{\theta}; x, \dfrac{(2j - 1) \pi 2^m}{2^J}\right) e^{\dfrac{ik\pi(2j-1)}{2^J}}\right] 
+\end{equation}
+
+As shown in \cite{ort16}, one can take the set $\{X_{m,k}\}$
+
+\subsection{Swift Parameters Choice}
 
 \section{Calibration as an optimization problem} \label{chap:optimization_problem}
 The goal of calibrating a model using market data, is to obtain model parameters that, when used for option valuation with an appropriate option valuation method, yield results similar to the real market option prices.
@@ -938,7 +1012,10 @@ In this study a Heston model will be calibrated with a a Levenberg–Marquardt m
 
 The option valuation will be done with a SWIFT method, using the expression for the characteristic function and it's derivatives provided in \cite{cui17}. These derivatives are taken from an exact expression of the option price. In order for the difference between the real derivatives and the derivatives of the Shannon Wavelet approximation to be small, the approximation error will be restricted accordingly.
 
-\subsection{Robustness and general minima tests}
+\subsection{Pricer Stress Tests}
+Both the option pricing presented by Cui, using the Gatheral equations \cite{cui17} and the SWIFT
+
+\subsection{Robustness and general minima tests} \label{test:robustness}
 There is no guarantee the objective function of the calibration problem is convex, so local minima problems can arise so, in order to both validate the robustness of the method proposed and assert its region of attraction, several convergence tests will be run.
 
 Consider a set of initial parameter configurations $\{\boldsymbol{\theta}^*\}$. Given an initial parameter vector $\boldsymbol{\theta}_{i}^*$ its correspondent call option prices will be computed at 40 control points $C(K_j, \tau_j)$.
@@ -951,15 +1028,41 @@ $\{\boldsymbol{\theta}_i\}$. The proposed calibration methodology will then be a
 The SWIFT approach with all its speed-up techniques should improve the computation time with respect to the original option valuation method used in the study of Cui et al. \cite{cui17}, and this speed-up should. In order to quantify this speed improvement several sets of Heston model parameters and market parameters (at both long and short term expiries and OTM and ITM options, to provide an heterogeneous sample of contracts) will be generated. For these inputs, the price of their correspondent option price will be computed using both the swift method and a simple quadrature numerical integration as in \cite{cui17}.
 
 \subsection{Fit tests}
-The Heston model should capture the market dynamics like skewness and high-kurtosis better than other simpler models like Black and Scholes. Comparing directly the goodness-of-fit of a Heston model and a BS one should show the clear dominance of the first one.
+The Heston model should capture the market dynamics like skewness and high-kurtosis better than other simpler models like Black and Scholes. In particular, it should be able to capture the volatility smile for a given expiry. The only way to observe this phenomenon is through the use of real market data.
 
-The calibration points will be obtained from real market data and will be taken at 
+As said in section \ref{subsec:smile_and_surf}, important market events, like the 1987 Black Monday, can affect the implied volatility smile. The Covid-19 pandemic we are currently under has affected q
 
-Christoffersen and Jacobs \cite{chr02} show the importance of using the same objective function for both model calibration and goodness-of-fit tests, and to use the same one across the different models we want to compare. If, instead, the vanilla BS model was calibrated by using a volatility based method, one could reduce the fitness over the evaluation objective function.
+In order to illustrate reasons a simple comparison between BS and Heston with real market data from EMini S\&P 500 options will be included. The calibration points will be obtained from real market data and will be taken for a single expiry at 
+
+The value goodness-of-fit 
+
+Christoffersen and Jacobs \cite{chr02} show the importance of using the same objective function for both model calibration and goodness-of-fit tests, and to use the same one across the different models we want to compare. This will not 
+
+Comparing directly the goodness-of-fit of a Heston model and a BS one should show the clear dominance of the first one.
 
 \section{Numerical Results}
 
+\subsection{Numerical Issues With Regular Cui Method}
+
+TODO: Check why Cui failed so horribly
+
 \section{Conclusions}
+
+\begin{itemize}
+
+\item \textbf{Robustness}
+
+Cui doesn't provide how to set the integration boundary. The method runs into numerical errors when u is too big, so a far-off initial guess of option parameters won't converge if N is not dynamically set. If it is, we would need to take it into account when computing the gradient. In summary, this limits the region of attraction of the method.
+
+SWIFT provides a dynamic scheme to set the pricing parameters, so one doesn't run into that kind of issue. On the other hand, if one decides to change the pricer parameters while running the gradient descent, one would need to to compute the total derivatives with respect to the option parameters by taking into account how changing the heston parameters changes the swift parameters and then how the swift parameters change the option parameters. Some of the parameters change discretely, so everything would be discontinuous.
+
+Another possibility would be to bound the error between the heston gradient and the real option price gradient. If the parameters are chosen so that the heston gradient is close enough to the heston price gradient through all the domain, and the price is also bounded, then every step of the gradient descent would take as closer to the optimum, if the real gradient is not too flat.
+
+\item \textbf{Speed}
+
+\item \textbf{Fitness}
+
+\end{itemize}
 
 \section{Further Research}
 Heston model clearly shows an improved fit with respect to the BS one, but this improvement could be mainly explained by the fact that BS has only 1 model parameter while Heston has 5.
@@ -975,9 +1078,15 @@ In order to give a fair comparison between both models, it would be of to also c
 
 %______________________________________________________________
 \appendix
-\vfill\newpage \section{Title of the appendix}
-You can include here an appendix with details that can not be included in the core of the document. You should reference the sections in this appendix in the core document.
+\vfill\newpage 
+\section{Code}
+The implementation of the SWIFT coded for this work can be consulted in the following Github public repository:
 
-\section{Trapezoid Quadrature For Parseval Coefficients}
+
+\section{Expressions}
+
+\subsection{Strike-free European Options Payoff Integrals} \label{app:payoff_integral}
+
+\subsection{Trapezoid Quadrature For Parseval Coefficients}
 
 \end{document}

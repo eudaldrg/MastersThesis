@@ -8,8 +8,7 @@ message(${PROJECT_NAME})
 project(${PROJECT_NAME})
 
 set(SOURCES
-#        luis_experiment_original.cpp
-        luis_experiment_heston.cpp
-    )
+        profile.cpp
+        )
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC SWIFT LEVMAR FFTW3 ${BOOST_STATIC_LIBRARIES})

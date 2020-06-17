@@ -71,7 +71,7 @@ std::vector<double> ExplicitVietaCalculator::GetCMCoefs(double x) const
     const std::size_t two_to_the_m = 1UL << m_params.m_m;
 
     std::vector<double> c_m;
-    c_m.reserve(m_params.m_k2 - m_params.m_k1);
+    c_m.reserve(m_params.m_k2 - m_params.m_k1 + 1);
     for (int k = m_params.m_k1; k <= m_params.m_k2; ++k)
     {
         double c_m_k = 0;
@@ -108,7 +108,7 @@ std::vector<std::vector<double>> FastVietaCalculator::GetGradientCMCoefs(double 
     }
     std::vector<std::vector<std::complex<double>>> times;
     for (std::size_t param = 0; param < m_distribution.GetNumberOfParameters(); ++param)
-        times.push_back(MY_IDFT(frequencies[param]));
+        times.push_back(MY_IDFT(frequencies[param], false));
 
     for (int k = m_params.m_k1; k <= m_params.m_k2; ++k)
     {
@@ -126,18 +126,21 @@ std::vector<std::vector<double>> FastVietaCalculator::GetGradientCMCoefs(double 
 
 std::vector<double> FastVietaCalculator::GetCMCoefs(double x) const
 {
-    std::vector<double> c_m_dft;
     std::vector<double> c_m;
+    c_m.reserve(m_params.m_k2 - m_params.m_k1 + 1);
     std::vector<std::complex<double>> frequencies;
 
     for (int i = 0; i < m_params.m_N_density; ++i)
     {
-        if (i < m_params.m_N_density / 2)
-            frequencies.push_back(m_distribution.GetChar((2.0 * i + 1.0) * MY_PI * static_cast<double>(m_params.m_two_to_the_m) / static_cast<double>(m_params.m_N_density), x));
+        if (i < m_params.m_J_density)
+        {
+            double u = (2.0 * i + 1.0) * MY_PI * static_cast<double>(m_params.m_two_to_the_m) / static_cast<double>(m_params.m_N_density);
+            frequencies.push_back(m_distribution.GetChar(u, x));
+        }
         else
             frequencies.emplace_back(0, 0);
     }
-    std::vector<std::complex<double>> times = MY_IDFT(frequencies);
+    std::vector<std::complex<double>> times = MY_IDFT(frequencies, true);
 
     for (int k = m_params.m_k1; k <= m_params.m_k2; ++k)
     {
@@ -147,29 +150,6 @@ std::vector<double> FastVietaCalculator::GetCMCoefs(double x) const
         c_m.push_back(c_m_k_complex_part_dft.real() * m_params.m_sqrt_two_to_the_m / m_params.m_J_density);
     }
     return c_m;
-}
-
-std::vector<std::complex<double>> FastVietaCalculator::MY_IDFT(std::vector<std::complex<double>> const& X, bool fast)
-{
-    if (!fast)
-        return IDFT(X, false);
-
-    fftw_complex* frequency_values, * time_values;
-    fftw_plan p;
-    frequency_values = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * X.size());
-    time_values = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * X.size());
-    p = fftw_plan_dft_1d(X.size(), frequency_values, time_values, FFTW_BACKWARD, FFTW_ESTIMATE);
-    for (std::size_t i = 0; i < X.size(); ++i)
-    {
-        frequency_values[i][0] = X[i].real();
-        frequency_values[i][1] = X[i].imag();
-    }
-
-    fftw_execute(p);
-    std::vector<std::complex<double>> time_values_std;
-    for (std::size_t i = 0; i < X.size(); ++i)
-        time_values_std.emplace_back(time_values[i][0], time_values[i][1]);
-    return time_values_std;
 }
 
 FastVietaCalculator::FastVietaCalculator(Distribution const& distribution, SwiftParameters const& params) : CMCalculator(distribution, params)

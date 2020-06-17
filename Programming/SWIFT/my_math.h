@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iterator>
 #include <iostream>
+#include <fftw3.h>
 
 using namespace std::complex_literals;
 const double MY_PI = boost::math::constants::pi<double>();
@@ -129,6 +130,29 @@ inline std::vector<std::complex<double>> IDFT(std::vector<std::complex<double>> 
         x.push_back(current_transform);
     }
     return x;
+}
+
+inline std::vector<std::complex<double>> MY_IDFT(std::vector<std::complex<double>> const& X, bool fast)
+{
+    if (!fast)
+        return IDFT(X, false);
+
+    fftw_complex* frequency_values, * time_values;
+    fftw_plan p;
+    frequency_values = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * X.size());
+    time_values = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * X.size());
+    p = fftw_plan_dft_1d(X.size(), frequency_values, time_values, FFTW_BACKWARD, FFTW_ESTIMATE);
+    for (std::size_t i = 0; i < X.size(); ++i)
+    {
+        frequency_values[i][0] = X[i].real();
+        frequency_values[i][1] = X[i].imag();
+    }
+
+    fftw_execute(p);
+    std::vector<std::complex<double>> time_values_std;
+    for (std::size_t i = 0; i < X.size(); ++i)
+        time_values_std.emplace_back(time_values[i][0], time_values[i][1]);
+    return time_values_std;
 }
 
 inline void fft(std::vector<std::complex<double>>& a, bool invert) {

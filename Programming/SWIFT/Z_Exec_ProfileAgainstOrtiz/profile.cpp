@@ -4,12 +4,17 @@
 
 // The following line must be defined before including math.h to correctly define M_PI
 #define _USE_MATH_DEFINES
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
-#include <complex.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <ctime>
+#include <ccomplex>
 #include "FFTW3/include_fftw3.h"
+
+#include <SWIFT/swift.h>
+#include <SWIFT/distributions.h>
+#include <SWIFT/option_contracts.h>
+#include <SWIFT/known_distribution_contract_combinations.h>
 
 using namespace std::complex_literals;
 
@@ -26,8 +31,8 @@ using namespace std::complex_literals;
 #define T 45.
 
 #define  mu r
-#define lambda 1.5768
-#define eta 0.5751
+#define lambda 1.5768 // kappa
+#define eta 0.5751 // Sigma
 #define vmean 0.0398
 #define v0 0.0175
 #define rho -0.5711
@@ -57,8 +62,47 @@ int k_2,Jd,pwJd;
 int Jp,pw2Jp,maxabsk;
 int min_k,max_k;
 
-int main()
+//double ext_inf,ext_sup;
+//void InitData()
+//{
+//    pw2n=pow(2,n);
+//    pw2n2=sqrt(pw2n);
+//
+//    double p1,p2,p3,p4,p5;
+//    double c1,c2;
+//    //Intervalo
+//    c1=mu*T+(1.-exp(-lambda*T))*(vmean-v0)/(2.*lambda)-0.5*vmean*T;
+//    p1=eta*T*lambda*exp(-lambda*T)*(v0-vmean)*(8.*lambda*rho-4.*eta);
+//    p2=lambda*rho*eta*(1.-exp(-lambda*T))*(16.*vmean-8.*v0);
+//    p3=2.*vmean*lambda*T*(-4.*lambda*rho*eta+pow(eta,2)+4.*pow(lambda,2));
+//    p4=pow(eta,2)*((vmean-2.*v0)*exp(-2.*lambda*T)+vmean*(6.*exp(-lambda*T)-7.)+2.*v0);
+//    p5=8.*pow(lambda,2)*(v0-vmean)*(1.-exp(-lambda*T));
+//    c2=(1./(8.*pow(lambda,3)))*(p1+p2+p3+p4+p5);
+//
+//    ext_inf=x0+c1-L*sqrt(std::fabs(c2));
+//    ext_sup=x0+c1+L*sqrt(std::fabs(c2));
+//    //printf("ext_inf=%lf\text_sup=%lf\n",ext_inf,ext_sup);
+//
+//    //Rango de k's para la densidad
+//    min_k=ceil(pw2n*ext_inf); printf("min_k=%d\n",min_k);
+//    max_k=floor(pw2n*ext_sup); printf("max_k=%d\n",max_k);
+//    k_2=max_k;
+//
+//    //J usado en la densidad
+//    double a,Mm;
+//    a=max(std::fabs(ext_inf),std::fabs(ext_sup)); //printf("a=%lf\n",a);
+//    Mm=max(std::fabs(pw2n*a-min_k),std::fabs(pw2n*a+max_k)); //printf("Mm=%lf\n",Mm);
+//    Jd=ceil(log2(PI*Mm)); //printf("Jd=%d\n",Jd);
+//
+//    //printf("Jd>=%d\t\tJdnoredondeo=%lf\n",Jd,log2(PI*Mm));
+//    //Jd=10;
+//    pwJd=pow(2,Jd-1); //printf("pwJd=%d\n",pwJd);
+//}
+
+
+void run_ortiz()
 {
+    printf("Ortiz");
     double xi,sum,ext_inf,ext_sup,c1,c2;
     double p1,p2,p3,p4,p5;
     int i,k;
@@ -76,7 +120,7 @@ int main()
     int cont;
 
     inicio=clock();
-    for(cont=1;cont<=1;cont++){
+    for(cont=1;cont<=50;cont++){
         pw2n=pow(2,n);
         pw2n2=sqrt(pw2n);
 
@@ -132,6 +176,7 @@ int main()
         maxabsk=abs(max_k-min_k);
         Jp=ceil(log2(PI*maxabsk)); //printf("Jp=%d\n",Jp);
         pw2Jp=pow(2,Jp-1);
+        std::cout << std::string("m, min_k, k_2, Jd, Jp ") << m << ", " << min_k << ", "<< k_2 << ", " << Jd << ", " << Jp << std::endl;
 
         /*Payoff with FFT*/
         payoffcoefic=static_cast<double*>(malloc((max_k-min_k+1)*sizeof(double)));
@@ -154,6 +199,7 @@ int main()
 
     printf("call_shannon=%.15lf\terror=%.2e\n",call_shannon,fabs(call_shannon-reference));
     printf("Tiempo ejecucion: %.3f\n",((double)(parada-inicio))/CLOCKS_PER_SEC);
+    std::cout << std::endl;
 
     /*Area bajo la funcion de densidad=1?*/
     A=0.5*(coefic[0]+coefic[max_k-min_k]);
@@ -179,7 +225,7 @@ int main()
     free(coefic);
     free(payoffcoefic);
 
-    return 0;
+//    return 0;
 }
 
 /*Funciones de escala*/
@@ -373,9 +419,51 @@ void FFT_ForPayoffCoefficients(double FFT_payoffcoefVector[])
     free(d);
     free(e);
     free(in);                                                            //Free memory
-    free(out);                                                           //Free memor
-    free(in2);                                                            //Free memory
+    free(out);                                                           //Free memory
+    free(in2);                                                           //Free memory
     free(out2);
 
     return;
+}
+
+void run_romo()
+{
+    printf("Romo");
+    clock_t inicio=clock();
+    volatile double call_shannon;
+    Swift::SwiftParameters params(n, -37, 33, 8, 8);
+    HestonParameters heston_parameters(lambda, vmean, eta, rho, v0);
+    HestonDistribution distribution(heston_parameters, T);
+    EuropeanOptionContract contract;
+    Swift::SwiftEvaluator eval(params, distribution, contract);
+    for (int cont=1;cont<=50;cont++){
+        call_shannon = eval.GetPrice(S0, K, r, q, true);
+    }
+    clock_t parada=clock();
+    printf("call_shannon=%.15lf\terror=%.2e\n", call_shannon, std::fabs(call_shannon - reference));
+    printf("Tiempo ejecucion: %.3f\n", ((double) (parada - inicio)) / CLOCKS_PER_SEC);
+    std::cout << std::endl;
+}
+
+void run_cui()
+{
+    printf("Cui");
+    clock_t inicio=clock();
+    volatile double call_shannon;
+    int cont=1;
+    for (; cont<=50; ++cont) {
+        HestonParameters heston_parameters(lambda, vmean, eta, rho, v0);
+        call_shannon = GetHestonEuropeanPriceCuiMyChar(heston_parameters, S0, K, r, q, T, 60);
+    }
+    clock_t parada=clock();
+    printf("call_shannon=%.15lf\terror=%.2e\n", call_shannon, std::fabs(call_shannon - reference));
+    printf("Tiempo ejecucion: %.3f\n", ((double) (parada - inicio)) / CLOCKS_PER_SEC);
+    std::cout << std::endl;
+}
+
+int main()
+{
+    run_ortiz();
+    run_romo();
+    run_cui();
 }

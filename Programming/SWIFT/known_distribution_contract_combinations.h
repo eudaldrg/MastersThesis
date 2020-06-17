@@ -46,7 +46,7 @@ inline double GetBSEuropeanVega(double K, double F, double r, double years, doub
     return K * inverse_exp_t_r * GetStandardPDF(d2) * sqrt(years);
 }
 
-inline double GetHestonEuropeanPriceCuiMyChar(HestonParameters const& parameters, double S, double K, double r, double q, double T)
+inline double GetHestonEuropeanPriceCuiMyChar(HestonParameters const& parameters, double S, double K, double r, double q, double T, double max_u = 200)
 {
     // x = log(S_T / K) = log(S_t * e^(rT) / K) = log(S_t / K) + rT
     double x = Distribution::GetXCompression(S, K, r, q, T);
@@ -70,7 +70,7 @@ inline double GetHestonEuropeanPriceCuiMyChar(HestonParameters const& parameters
     };
 
     GaussLegendreIntegrator gauss_legendre_integrator(GaussLegendreIntegrator::GaussLegendreMode::Fast);
-    double quadrature_value = gauss_legendre_integrator.GetIntegral(F, 0, 200, 0.0);
+    double quadrature_value = gauss_legendre_integrator.GetIntegral(F, 0, max_u, 0.0);
     double inverse_exponential_r_times_T = std::exp(-r * T);
     double inverse_exponential_q_times_T = std::exp(-q * T);
     return K * (0.5 * (inverse_exponential_q_times_T * S / K - inverse_exponential_r_times_T) + inverse_exponential_r_times_T / MY_PI * quadrature_value);
