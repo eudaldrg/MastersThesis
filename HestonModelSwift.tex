@@ -573,17 +573,17 @@ M(u)=\mathbb{E}\left[ e^{u X_{t}}\right] = e^{- x u} exp & \left[ \dfrac{2 \kapp
 
 This expression will be useful to bound the mass at the queues of the probability function $f(y|x)$.
 
-\begin{lem} \label{lem:my_lemma}
-\begin{equation}
-C(\boldsymbol{\theta}; K, \tau) = Ke^{-r\tau} \left[ \dfrac{e^x - 1}{2} + \dfrac{1}{\pi} \int_0^{\infty} Re \left( \dfrac{\hat{f}(u - i; x) - \hat{f}(u; x)}{iu} \right) du \right]
-\end{equation}
-\end{lem}
+%\begin{lem} \label{lem:my_lemma}
+%\begin{equation}
+%C(\boldsymbol{\theta}; K, \tau) = Ke^{-r\tau} \left[ \dfrac{e^x - 1}{2} + \dfrac{1}{\pi} \int_0^{\infty} Re \left( \dfrac{\hat{f}(u - i; x) - \hat{f}(u; x)}{iu} \right) du \right]
+%\end{equation}
+%\end{lem}
 
-\begin{lem} \label{lem:my_lemma_2}
-\begin{equation}
-C(\boldsymbol{\theta}; K, \tau) \approx C_1 :=  Ke^{-r\tau} \left[ \dfrac{e^x - 1}{2} + \dfrac{1}{\pi} \sum_{1 - \kappa}^{\kappa} D_{m,k} \int_0^{\infty} Re \left( \dfrac{\hat{\phi}_{m,k}(u - i) - \hat{\phi}_{m,k}(u)}{iu} \right) du \right]
-\end{equation}
-\end{lem}
+%\begin{lem} \label{lem:my_lemma_2}
+%\begin{equation}
+%C(\boldsymbol{\theta}; K, \tau) \approx C_1 :=  Ke^{-r\tau} \left[ \dfrac{e^x - 1}{2} + \dfrac{1}{\pi} \sum_{1 - \kappa}^{\kappa} D_{m,k} \int_0^{\infty} Re \left( \dfrac{\hat{\phi}_{m,k}(u - i) - \hat{\phi}_{m,k}(u)}{iu} \right) du \right]
+%\end{equation}
+%\end{lem}
 
 \section{Multi Resolution Analysis and Shannon Wavelets}
 
@@ -705,7 +705,7 @@ D_{m,k} = 2^{m/2} \int_{-1/2}^{1/2} Re \left(\hat{f}(2^{m+1} \pi t) e^{i2\pi k t
 Any quadrature can be applied to numerically compute the integral, but there are known techniques to rearrange the trapezoid and midpoint quadratures to compute all the coefficients with a single FFT \cite{mar17, flo20}.
 }
 \item { \textbf{Coefficients via Sinc approximations: }
-An equivalent expression of the sinc function was presented in \cite{ort16} as a cosine expansion using Vieta's formula: 
+An equivalent expression of the sinc function was presented in \cite{Ortiz-Gracia2016} as a cosine expansion using Vieta's formula: 
 \begin{equation}
 sinc(x) = \prod_{j = 1}^{\infty} cos \left( \dfrac{\pi x}{r^j} \right)
 \end{equation}
@@ -749,7 +749,7 @@ max_{|x| \leq a} \left|sinc(x) - sinc^{*}(x; J) \right| \leq \dfrac{(\pi a)^2}{(
 \end{equation}
 \end{lem}
 
-\section{Pricing by Gatheral}
+%\section{Pricing by Gatheral}
 
 \section{SWIFT}
 
@@ -875,7 +875,7 @@ This last sumation expression coincides with the Discrete Fourier Transform (DFT
 Note that computing the density or payoff coefficients imposes a restriction on the wavelet series truncation parameter $2 \kappa < J$
 \end{remark}
 
-In all numeric examples in this article the C library FFTW will be used to compute any FFT.
+In all numeric examples in this article the C library FFTW will be used to compute any FFT \cite{fftw3}
 
 \subsection{Alternative Method for Multiple Strikes}
 
@@ -973,7 +973,10 @@ Let $C^*(K_i, \tau_i)$ be the market price of a European call option and
  $C(\boldsymbol{\theta}; K_i, \tau_i)$ be the price at the same strikes and maturities obtained by using the Heston analytic formula \ref{eq:heston_analytic}. Let's also assume that we use n different options to calibrate the model, so 
  $i \in [1,n] \subset \Z$
  . Then:
- \begin{definition} The calibration of the model is defined as the minimization problem $$min_{\boldsymbol{\theta} \in \R^5} (f(\boldsymbol{\theta}))$$ $$f(\boldsymbol{\theta}) := \dfrac{1}{2}||\boldsymbol{r}(\theta)||^2 = \dfrac{1}{2} \boldsymbol{r}^T(\boldsymbol{\theta})\boldsymbol{r}(\boldsymbol{\theta})$$
+\begin{definition} The calibration of the model is defined as the minimization problem 
+\begin{equation} \label{eq:opt_problem}
+min_{\boldsymbol{\theta} \in \R^5} (f(\boldsymbol{\theta}))$$ $$f(\boldsymbol{\theta}) := \dfrac{1}{2}||\boldsymbol{r}(\theta)||^2 = \dfrac{1}{2} \boldsymbol{r}^T(\boldsymbol{\theta})\boldsymbol{r}(\boldsymbol{\theta})
+\end{equation}
 \end{definition}
 
 , where $\boldsymbol{r}(\boldsymbol{\theta})$ is the n-dimensional vector of the residuals obtained when pricing the options considered for calibration using the model parameters. That is:
@@ -1003,17 +1006,14 @@ As this study does not strive for any specific trading strategy, the choice of T
 \end{equation}
 , where 
 
-\subsubsection{Fast Calculation of integrands}
-All integrands are of the form: % PAGE 6, right column.
-
 \section{Formulation of the study}
 
-In this study a Heston model will be calibrated with a a Levenberg–Marquardt method with the objective function defined in \ref{eq:objective_function}. 
+In this study, the SWIFT framework will be used to callibrate a Heston model through option price data at different strikes and maturities and it will be compared to the calibration method based on Gatheral's equations proposed by Cui et al. \cite{cui17}. The calibration process will consist on applying a Levenberg–Marquardt method to the objective function defined in equation \ref{eq:opt_problem}.
 
-The option valuation will be done with a SWIFT method, using the expression for the characteristic function and it's derivatives provided in \cite{cui17}. These derivatives are taken from an exact expression of the option price. In order for the difference between the real derivatives and the derivatives of the Shannon Wavelet approximation to be small, the approximation error will be restricted accordingly.
+The SWIFT method will be implemented using the expression for the characteristic function and its derivatives provided also in \cite{cui17}.
 
 \subsection{Pricer Stress Tests}
-Both the option pricing presented by Cui, using the Gatheral equations \cite{cui17} and the SWIFT
+Both the option pricing presented by Cui, using the Gatheral equations \cite{cui17} and the SWIFT will be tested with several combinations of parameters, strikes, and maturities to detect any possible limitations or numerical issues of both models in a wide usage range.
 
 \subsection{Robustness and general minima tests} \label{test:robustness}
 There is no guarantee the objective function of the calibration problem is convex, so local minima problems can arise so, in order to both validate the robustness of the method proposed and assert its region of attraction, several convergence tests will be run.
