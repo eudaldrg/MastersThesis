@@ -883,14 +883,7 @@ In all numeric examples in this article the C library FFTW will be used to compu
 If one were to use the SWIFT pricing 
 A great property of the SWIFT method is that it allows to reuse most of its calculations to price several strikes for L\'evy and Heston models
 
-Change the strike dependency from the density to the payoff coefficients
-
-\begin{lem} Option Price
-\begin{equation}
-v(\boldsymbol{\theta}; x, \tau) \approx v_1(\boldsymbol{\theta}; x, \tau) = e^{-r \tau} \int_{I_m} v(y, 0) f_m(\boldsymbol{\theta}; y|x) dy = e^{-r \tau} \sum_{k = k_1}^{k_2} D_{m,k}(\boldsymbol{\theta}; x) \cdot V_{m, k}
-\end{equation}
-, where $$V_{m, k} = \int_{I_m} v(y, 0) \phi_{m,k}(y)dy$$
-\end{lem}
+TODO: Change the strike dependency from the density to the payoff coefficients
 
 \subsection{Option Price Gradient}
 
@@ -959,8 +952,6 @@ D_{m,k}(\boldsymbol{\theta}; x) \approx c^*_{m,k} (\boldsymbol{\theta}; x) = \df
 
 As shown in \cite{Ortiz-Gracia2016}, one can take the set $\{X_{m,k}\}$
 
-\subsection{Swift Parameters Choice}
-
 \section{Calibration as an optimization problem} \label{chap:optimization_problem}
 The goal of calibrating a model using market data, is to obtain model parameters that, when used for option valuation with an appropriate option valuation method, yield results similar to the real market option prices.
 
@@ -996,7 +987,7 @@ As this study does not strive for any specific trading strategy, the choice of T
 
 %% Anava per aqui1
 
-\section{Gradient Calculation} \label{sec:gradient}
+\subsection{Gradient Calculation} \label{sec:gradient}
 
 \begin{equation}
 \begin{aligned}
