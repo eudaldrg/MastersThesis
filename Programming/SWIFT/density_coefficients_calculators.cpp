@@ -67,23 +67,20 @@ std::vector<std::vector<double>> ExplicitVietaCalculator::GetGradientCMCoefs(dou
 
 std::vector<double> ExplicitVietaCalculator::GetCMCoefs(double x) const
 {
-    const std::size_t N = 2 * m_params.m_J_density;
-    const std::size_t two_to_the_m = 1UL << m_params.m_m;
-
     std::vector<double> c_m;
     c_m.reserve(m_params.m_k2 - m_params.m_k1 + 1);
     for (int k = m_params.m_k1; k <= m_params.m_k2; ++k)
     {
         double c_m_k = 0;
-        for (int i = 1; i <= m_params.m_J_density; ++i)
+        for (int j = 1; j <= m_params.m_J_density; ++j)
         {
-            double u = (2 * i - 1) * MY_PI * two_to_the_m / N;
-
-            std::complex<double> f_hat = m_distribution.GetChar(u, x);
-            std::complex<double> cv = f_hat * std::exp(1i * static_cast<double>(k) * MY_PI * (2.0 * i - 1.0) / static_cast<double>(N));
+            double w_j = (2 * j - 1) * MY_PI / m_params.m_N_density;
+            double u_j = w_j * m_params.m_two_to_the_m;
+            std::complex<double> f_hat = m_distribution.GetChar(u_j, x);
+            std::complex<double> cv = f_hat * std::exp(1i * static_cast<double>(k) * w_j);
             c_m_k += cv.real();
         }
-        c_m.push_back(c_m_k * std::sqrt(two_to_the_m) / m_params.m_J_density);
+        c_m.push_back(c_m_k * m_params.m_sqrt_two_to_the_m / m_params.m_J_density);
     }
     return c_m;
 }

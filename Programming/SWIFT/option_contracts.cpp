@@ -31,7 +31,7 @@ double EuropeanOptionContract::GetPayoffNonKComponentOldPaper(int k, Swift::Swif
     double return_value = 0.0;
     for (int j = 1; j <= static_cast<int>(params.m_J_payoff); ++j)
     {
-        double w_j = (2.0 * j - 1.0) / params.m_N_payoff * MY_PI;
+        double w_j = (2.0 * j - 1.0) * MY_PI / params.m_N_payoff;
         double u = w_j * params.m_two_to_the_m;
         return_value += Integral(to, u, w_j) - Integral(from, u, w_j);
     }

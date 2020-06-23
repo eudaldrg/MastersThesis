@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(Jacobian_BS_UT)
         GBM distribution(bs_parameters.m_vol, Ts[i]);
         Swift::SwiftEvaluator eval(swift_params, distribution, european_contract);
         double real = GetBSEuropeanVega(Ks[i], S, r, Ts[i], bs_parameters.m_vol, q);
-        double swift = eval.GetGradient(S, Ks[i], r, 0.0)[0];
+        double swift = eval.GetGradient(S, Ks[i], r, 0.0, true)[0];
         BOOST_CHECK_MESSAGE(std::abs(real - swift) < 1e-3, "Error " << real - swift);
         std::cout << "factor " << real / swift << std::endl;
     }
