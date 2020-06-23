@@ -3,6 +3,7 @@
 #include <SWIFT/known_distribution_contract_combinations.h>
 #include <SWIFT/swift.h>
 #include <LEVMAR/levmar.h>
+#include <SWIFT/quick_callibration_swift.h>
 #include "vector"
 #include "SWIFT/distributions.h"
 
@@ -13,12 +14,14 @@ struct MarketParameters{
     double q = 0;
     std::vector<double> T;
     std::vector<double> K;
+    std::vector<std::vector<std::complex<double>>> exp_u_j_two_to_the_m_x;
 //    Swift::SwiftParameters swift_params{4, -15, 16, 8, 7};
     Swift::SwiftParameters swift_params{3, -7, 8, 8, 7};
+    std::unique_ptr<Swift::SwiftInvariantData> swift_invariant_data;
 };
 
 // Jacobian (parameter, observation, dim_p, dim_x, arguments)
-void GetGBMJacobianForLevMar(double *p, double *jac, int m, int n_observations, void *adata) {
+void GetHestonJacobianForLevenbergMarquard(double *p, double *jac, int m, int n_observations, void *adata) {
     GBMParameters parameters{p[0]};
     auto* market_data_ptr = static_cast<MarketParameters const*>(adata);
     MarketParameters const& market_parameters = *market_data_ptr;
@@ -27,21 +30,25 @@ void GetGBMJacobianForLevMar(double *p, double *jac, int m, int n_observations, 
 
     double T = market_parameters.T[0];
     GBM distribution(parameters.m_vol, T);
-    Swift::SwiftParameters swift_params = market_parameters.swift_params;
+//    Swift::SwiftParameters swift_params = market_parameters.swift_params;
     EuropeanOptionContract contract;
+//    Swift::QuickCallibrationSwiftEvaluator eval(market_parameters.swift_params, distribution, contract, true);
+    Swift::QuickCallibrationSwiftEvaluator eval(*market_parameters.swift_invariant_data, market_parameters.swift_params, distribution, contract);
+    std::vector<std::vector<double>> gradients = eval.GetGradient(market_parameters.S, market_parameters.K, market_parameters.r, market_parameters.q);
     for (int observation = 0; observation < n_observations; ++observation) {
-        double K = market_parameters.K[observation];
+//        double K = market_parameters.K[observation];
 //        double T = market_parameters.T[observation];
 //        GBM distribution(parameters.m_vol, T);
 //        Swift::SwiftParameters swift_params{3, -31, 32, 10, 10};
 //        EuropeanOptionContract contract;
-        Swift::SwiftEvaluator eval(swift_params, distribution, contract);
-        std::vector<double> pd = eval.GetGradient(market_parameters.S, K, market_parameters.r, market_parameters.q);
+//        Swift::SwiftEvaluator eval(swift_params, distribution, contract);
+//        std::vector<double> pd = eval.GetGradient(market_parameters.S, K, market_parameters.r, market_parameters.q, true);
+        std::vector<double> pd = gradients[observation];
         jac[observation * m] = pd[0];
     }
 }
 
-void GetGBMPriceForLevMar(double *p, double *x, int /*m*/, int n_observations, void *adata)
+void GetHestonPriceForLevMar(double *p, double *x, int /*m*/, int n_observations, void *adata)
 {
     GBMParameters parameters{p[0]};
     auto* market_data_ptr = static_cast<MarketParameters const*>(adata);
@@ -52,23 +59,27 @@ void GetGBMPriceForLevMar(double *p, double *x, int /*m*/, int n_observations, v
     double T = market_parameters.T[0];
     GBM distribution(parameters.m_vol, T);
     EuropeanOptionContract contract;
-    Swift::SwiftEvaluator eval(market_parameters.swift_params, distribution, contract);
-//    std::vector<double> prices = eval.GetPrices(market_parameters.S, market_parameters.K, market_parameters.r, market_parameters.q);
+//    Swift::SwiftEvaluator eval(market_parameters.swift_params, distribution, contract);
+//    Swift::QuickCallibrationSwiftEvaluator eval(market_parameters.swift_params, distribution, contract, true);
+    Swift::QuickCallibrationSwiftEvaluator eval(*market_parameters.swift_invariant_data, market_parameters.swift_params, distribution, contract);
+    std::vector<double> prices = eval.GetPrice(market_parameters.S, market_parameters.K, market_parameters.r, market_parameters.q);
     for (int i = 0; i < n_observations; ++i)
     {
 //        GBM distribution(parameters.m_vol, market_parameters.T[i]);
 //        Swift::SwiftParameters swift_params{3, -31, 32, 10, 10};
 //        EuropeanOptionContract contract;
 //        Swift::SwiftEvaluator eval(swift_params, distribution, contract);
-        x[i] = eval.GetPrice(market_parameters.S, market_parameters.K[i], market_parameters.r, market_parameters.q, true);
+//        x[i] = eval.GetPrice(market_parameters.S, market_parameters.K[i], market_parameters.r, market_parameters.q, true);
+        x[i] = prices[i];
+//        std::cout << "i " << i << " x " << x[i] << std::endl;
     }
 }
 
 int main()
 {
-    int m = 1;  // # of parameters
-    int n_observations = 40; // # of observations (consistent with the struct MarketParameters)
-//    int n_observations = 4; // # of observations (consistent with the struct MarketParameters)
+    int M_parameters = 1;  // # of parameters
+    int N_observations = 40; // # of observations (consistent with the struct MarketParameters)
+//    int N_observations = 4; // # of observations (consistent with the struct MarketParameters)
 
     MarketParameters market_parameters;
 
@@ -87,6 +98,7 @@ int main()
         1.3939, 1.4102, 1.4291, 1.4456, 1.4603, 1.4736, 1.5005, 1.5328
     };
 
+
     // array of expiries
     std::vector<double> expiries = {0.119047619047619, 0.238095238095238, 0.357142857142857, 0.476190476190476, 0.595238095238095, 0.714285714285714, 1.07142857142857, 1.42857142857143,
                                     0.119047619047619, 0.238095238095238, 0.357142857142857, 0.476190476190476, 0.595238095238095, 0.714285714285714, 1.07142857142857, 1.42857142857143,
@@ -100,11 +112,13 @@ int main()
     market_parameters.r = 0.02;
 
     // strikes and expiries
-    for (int j = 0; j < n_observations; ++j)
+    for (int j = 0; j < N_observations; ++j)
     {
         market_parameters.K.push_back(K_over_S[j]);
         market_parameters.T.push_back(expiries[j]);
     }
+    market_parameters.swift_invariant_data = std::make_unique<Swift::SwiftInvariantData>(market_parameters.swift_params, market_parameters.T[0], EuropeanOptionContract{}, true,
+        market_parameters.S, market_parameters.K, market_parameters.r, market_parameters.q);
 
     //// END INIT MARKET PARAMETERS
 
@@ -115,20 +129,20 @@ int main()
 
     // compute the market_parameters observations with pstar
     double x[40];
-    GetGBMPriceForLevMar(pstar, x, m, n_observations, &market_parameters);
-    for (std::size_t i = 0; i < K_over_S.size(); ++i)
-    {
-        double current_value = x[i];
-        double real_value = GetBSEuropeanPrice(K[i], market_parameters.S, market_parameters.r, market_parameters.T, pstar[0], true, market_parameters.q);
-        std::cout << "K " << market_parameters.K[i] << " T " << market_parameters.T[i] << " value " << current_value << " real value " << real_value << std::endl;
-    }
+    GetHestonPriceForLevMar(pstar, x, M_parameters, N_observations, &market_parameters);
+//    for (std::size_t i = 0; i < K_over_S.size(); ++i)
+//    {
+//        double current_value = x[i];
+//        double real_value = GetBSEuropeanPrice(market_parameters.K[i], market_parameters.S, market_parameters.r, market_parameters.T[i], pstar[0], true, market_parameters.q);
+//        std::cout << "K " << market_parameters.K[i] << " T " << market_parameters.T[i] << " value " << current_value << " real value " << real_value << std::endl;
+//    }
 
 
-    double jacobian[40 * 5];
-    GetHestonJacobian(pstar, jacobian, m, n_observations, &market_parameters);
-    for (int j = 0; j < n_observations; ++j)
-        std::cout << "K " << market_parameters.K[j] << " T " << market_parameters.T[j] << " jacobian " << jacobian[j] << " " << jacobian[j + 1] << " " << jacobian[j + 2] << " " << jacobian[j + 3]
-                  << " " << jacobian[j + 4] << " " << std::endl;
+//    double jacobian[40 * 5];
+//    GetGBMJacobianForLevMar(pstar, jacobian, M_parameters, N_observations, &market_parameters);
+//    for (int j = 0; j < N_observations; ++j)
+//        std::cout << "K " << market_parameters.K[j] << " T " << market_parameters.T[j] << " jacobian " << jacobian[j] << " " << jacobian[j + 1] << " " << jacobian[j + 2] << " " << jacobian[j + 3]
+//                  << " " << jacobian[j + 4] << " " << std::endl;
 //
     // >>> Enter calibrating routine >>>
     double start_s = clock();
@@ -150,7 +164,8 @@ int main()
     std::cout << "Parameters:" << "\t         vol" << std::endl;
     std::cout << "\r Initial point:" << "\t"  << std::scientific << std::setprecision(8) << p[0] << std::endl;
     // Calibrate using analytical gradient
-    dlevmar_der(GetGBMPriceForLevMar, GetGBMJacobianForLevMar, p, x, m, n_observations, 100, opts, info, NULL, NULL, (void*) &market_parameters);
+//    dlevmar_der(GetGBMPriceForLevMar, GetGBMJacobianForLevMar, p, x, M_parameters, N_observations, 100, opts, info, NULL, NULL, (void*) &market_parameters);
+    dlevmar_der(GetHestonPriceForLevMar, GetHestonJacobianForLevenbergMarquard, p, x, M_parameters, N_observations, 5, opts, info, NULL, NULL, (void*) &market_parameters);
 
     double stop_s = clock();
 

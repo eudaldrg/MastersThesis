@@ -135,9 +135,19 @@ public:
         return GBMParameters::GetNumberOfParameters();
     }
 
-    [[nodiscard]] double GetFirstCumulant() const final { return 1; }
-    [[nodiscard]] double GetSecondCumulant() const final { return 1; }
-    [[nodiscard]] double GetFourthCumulant() const final { return 1; }
+    [[nodiscard]] double GetFirstCumulant() const final
+    {
+        double mu = -m_vol_2 / 2; // The r - q part is already taken into account in x0.
+        return mu * m_T;
+    }
+    [[nodiscard]] double GetSecondCumulant() const final
+    {
+        return m_vol_2 * m_T;
+    }
+    [[nodiscard]] double GetFourthCumulant() const final
+    {
+        return 0;
+    }
 
     GBMParameters m_parameters;
     double m_vol_2;
@@ -147,14 +157,14 @@ public:
 struct HestonParameters
 {
 public:
-    HestonParameters(double k, double v_bar, double sigma, double rho, double v_0) : m_k(k), m_v_bar(v_bar), m_sigma(sigma), m_rho(rho), m_v0(v_0) {}
+    HestonParameters(double k, double v_bar, double sigma, double rho, double v_0) : m_kappa(k), m_v_bar(v_bar), m_sigma(sigma), m_rho(rho), m_v0(v_0) {}
 
     static std::size_t GetNumberOfParameters()
     {
         return 5;
     }
 
-	double m_k;         // mean reversion rate
+	double m_kappa;         // mean reversion rate
 	double m_v_bar;     // long term variance
 	double m_sigma;     // variance of volatility
 	double m_rho;       // correlation between spot and volatility
@@ -170,6 +180,11 @@ public:
 		: Distribution(T), m_parameters(parameters)
 	{
 		m_sigma_squared = m_parameters.m_sigma * m_parameters.m_sigma;
+		m_sigma_times_rho = m_parameters.m_sigma * m_parameters.m_rho;
+        m_kappa_v_bar_rho_T = m_parameters.m_kappa * m_parameters.m_v_bar * m_parameters.m_rho * T;
+        m_kappa_v_bar_rho_T_over_sigma = m_kappa_v_bar_rho_T / m_parameters.m_sigma;
+        m_half_T = 0.5 * T;
+        m_two_kappa_v_bar_over_sigma_squared = 2 * m_parameters.m_kappa * m_parameters.m_v_bar / m_sigma_squared;
 	}
 
 	struct HelperVariables
@@ -206,6 +221,7 @@ public:
 
     [[nodiscard]] std::vector<std::complex<double>> GetNonXCharGradient(std::complex<double> u) const final
     {
+        u = -u; //TODO: Fix properly later on.
         return GetCuiGradient(u, m_T);
     }
 
@@ -218,57 +234,31 @@ public:
 
     [[nodiscard]] std::complex<double> GetCuiCharExplicit(std::complex<double> u, double T) const
     {
-        auto const& [kappa, v_bar, sigma, rho, v0] = m_parameters;
-
         std::complex<double> ui = 1i * u;
         std::complex<double> u_squared = u * u;
 
-        // We need to evaluate everything at u1 = u - i and u2 = u.
-        double sigma_times_rho = sigma * rho; // TAG: PRECOMPUTE
-        std::complex<double> xi = kappa - sigma_times_rho * ui; // xi = kappa - sigma * rho * u * i
+        std::complex<double> xi = m_parameters.m_kappa - m_sigma_times_rho * ui; // xi = kappa - sigma * rho * u * i
         std::complex<double> xi2 = xi * xi;
         std::complex<double> m = ui + u_squared; // m = u * i + u^2;
-        std::complex<double> d = sqrt(xi2 + m * m_sigma_squared); // d = sqrt(pow(xi,2) + m*pow(sigma,2));
-
-        // g = exp(-kappa * b * rho * T * u * i / sigma);
-        double kappa_v_bar_rho_T = kappa * v_bar * rho * T;  // TAG: PRECOMPUTE
-        double minus_kappa_v_bar_rho_T_over_sigma = -kappa_v_bar_rho_T / sigma;  // TAG: PRECOMPUTE
-        std::complex<double> g = exp(minus_kappa_v_bar_rho_T_over_sigma * ui);
+        std::complex<double> d = std::sqrt(xi2 + m * m_sigma_squared); // d = sqrt(pow(xi,2) + m*pow(sigma,2));
 
         // alp, calp, salp
-        double halft = 0.5 * T;
-        std::complex<double> alpha = d * halft;
+        std::complex<double> alpha = d * m_half_T;
         std::complex<double> cosh_alpha = cosh(alpha);
         std::complex<double> sinh_alpha = sinh(alpha);
         std::complex<double> A2_times_v0 = d * cosh_alpha + xi * sinh_alpha;
         std::complex<double> A1 = m * sinh_alpha;
         std::complex<double> A_over_v0 = A1 / A2_times_v0;
 
-        double two_kappa_v_bar_over_sigma_squared = 2 * kappa * v_bar / m_sigma_squared;
-        std::complex<double> D = log(d) + (kappa - d) * halft - log((d + xi) * 0.5 + (d - xi) * 0.5 * exp(-d * T));
+        std::complex<double> D = std::log(d) + (m_parameters.m_kappa - d) * m_half_T - std::log((d + xi) * 0.5 + (d - xi) * 0.5 * exp(-d * T));
 
-        std::complex<double> char_u = exp(-v0 * A_over_v0 + two_kappa_v_bar_over_sigma_squared * D) * g;
+//        std::complex<double> g = std::exp(m_kappa_v_bar_rho_T_over_sigma * ui);
+
+        // g = exp(-kappa * b * rho * T * u * i / sigma);
+        // char = std::exp(-A + (2 k v_bar / sigma^2) * D) * g
+        std::complex<double> char_u = std::exp(-m_parameters.m_v0 * A_over_v0 + m_two_kappa_v_bar_over_sigma_squared * D - m_kappa_v_bar_rho_T_over_sigma * ui);
         return char_u;
     }
-
-    // TODO: CUI WAS USING THE FUCKING CHAR OF -x instead of CHAR OF x
-    std::complex<double> chf(double u, double T)
-    {
-        auto const& [kappa, vmean, sigma, rho, v0] = m_parameters;
-
-        std::complex<double> ui = 1i * u;
-        std::complex<double> u_squared = u * u;
-
-        std::complex<double> xi = kappa + sigma * rho * ui;
-        std::complex<double> m = -ui + u_squared;
-        std::complex<double> D = std::sqrt(xi * xi + m * m_sigma_squared);
-        std::complex<double> G = (kappa + rho * sigma * ui - D) / (kappa + rho * sigma * u * 1i + D);
-        std::complex<double> e1= (v0 / pow(sigma, 2)) * ((1. - std::exp(-D * T)) / (1. - G * std::exp(-D * T))) * (kappa + rho * sigma * u * 1i - D);
-        std::complex<double> e2= ((kappa * vmean) / std::pow(sigma, 2)) * (T * (kappa + rho * sigma * u * 1i - D) - 2. * std::log((1. - G * std::exp(-D * T)) / (1. - G)));
-
-        return std::exp(e1) * std::exp(e2);
-    }
-
     [[nodiscard]] std::vector<std::complex<double>> GetCuiGradient(std::complex<double> u, double T) const
     {
         auto const& [kappa, v_bar, sigma, rho, v0] = m_parameters;
@@ -276,32 +266,35 @@ public:
         std::complex<double> ui = 1i * u;
         std::complex<double> u_squared = u * u;
 
-        // We need to evaluate everything at u1 = u - i and u2 = u.
-        double sigma_times_rho = sigma * rho; // TAG: PRECOMPUTE
-        std::complex<double> xi = kappa - sigma_times_rho * ui; // xi = kappa - sigma * rho * u * i
+        std::complex<double> xi = m_parameters.m_kappa - m_sigma_times_rho * ui; // xi = kappa - sigma * rho * u * i
+        std::complex<double> xi2 = xi * xi;
         std::complex<double> m = ui + u_squared; // m = u * i + u^2;
-        std::complex<double> d = sqrt(pow(xi, 2) + m * m_sigma_squared); // d = sqrt(pow(xi,2) + m*pow(sigma,2));
-
-        // g = exp(-kappa * b * rho * T * u1 * i / sigma);
-        double kappa_v_bar_rho_T = kappa * v_bar * rho * T;  // TAG: PRECOMPUTE
-        double minus_kappa_v_bar_rho_T_over_sigma = -kappa_v_bar_rho_T / sigma;  // TAG: PRECOMPUTE
-        std::complex<double> g = exp(minus_kappa_v_bar_rho_T_over_sigma * ui);
+        std::complex<double> d = std::sqrt(xi2 + m * m_sigma_squared); // d = sqrt(pow(xi,2) + m*pow(sigma,2));
 
         // alp, calp, salp
-        double halft = 0.5 * T;
-        std::complex<double> alpha = d * halft;
+        std::complex<double> alpha = d * m_half_T;
         std::complex<double> cosh_alpha = cosh(alpha);
         std::complex<double> sinh_alpha = sinh(alpha);
         std::complex<double> A2_times_v0 = d * cosh_alpha + xi * sinh_alpha;
         std::complex<double> A1 = m * sinh_alpha;
         std::complex<double> A_over_v0 = A1 / A2_times_v0;
 
+        std::complex<double> D = std::log(d) + (m_parameters.m_kappa - d) * m_half_T - std::log((d + xi) * 0.5 + (d - xi) * 0.5 * exp(-d * T));
+
+//        std::complex<double> g = exp(minus_kappa_v_bar_rho_T_over_sigma * ui);
+
+        // F = S * e^((r - q) * T)
+        // characteristic function: y1 = exp(i * log(F / S) * u) * exp(-A + 2 * kappa * b / pow(sigma, 2) * D) * g
+        // But we only care about the second exponential, the rest depends only on market parameters and will be computed separately.
+        std::complex<double> char_u = exp(-m_parameters.m_v0 * A_over_v0 + m_two_kappa_v_bar_over_sigma_squared * D - m_kappa_v_bar_rho_T_over_sigma * ui);
+
         // B = d * exp(kappa * T / 2) / (A2 * v0);
-        double exp_kappa_times_half_T = exp(kappa * halft); // exp(kappa * T / 2)
+        double exp_kappa_times_half_T = exp(kappa * m_half_T); // exp(kappa * T / 2)
         std::complex<double> B = d * exp_kappa_times_half_T / A2_times_v0;
 
-        double two_kappa_v_bar_over_sigma_squared = 2 * kappa * v_bar / m_sigma_squared;
-        std::complex<double> D = log(d) + (kappa - d) * halft - log((d + xi) * 0.5 + (d - xi) * 0.5 * exp(-d * T));
+        // g = exp(-kappa * b * rho * T * u1 * i / sigma);
+        double kappa_v_bar_rho_T = kappa * v_bar * rho * T;  // TAG: PRECOMPUTE
+        double minus_kappa_v_bar_rho_T_over_sigma = -kappa_v_bar_rho_T / sigma;  // TAG: PRECOMPUTE
 
         std::complex<double> H = xi * cosh_alpha + d * sinh_alpha;
 
@@ -309,7 +302,7 @@ public:
         std::complex<double> lnB = D;
 
         // partial b: y3 = y1*(2*kappa*lnB/pow(sigma,2)-kappa*rho*T*u1*i/sigma);
-        double two_kappa_over_sigma_squared = two_kappa_v_bar_over_sigma_squared / v_bar;
+        double two_kappa_over_sigma_squared = m_two_kappa_v_bar_over_sigma_squared / v_bar;
         double minus_kappa_rho_T_over_sigma = minus_kappa_v_bar_rho_T_over_sigma / v_bar;
 
         std::complex<double> h_v_bar = two_kappa_over_sigma_squared * lnB + minus_kappa_rho_T_over_sigma * ui;
@@ -319,19 +312,19 @@ public:
 
         std::complex<double> sigma_ui_over_d = sigma * ui / d;
         std::complex<double> pd_prho = -xi * sigma_ui_over_d;
-        std::complex<double> pA1_prho = m * cosh_alpha * halft * pd_prho;
-        std::complex<double> pA2_prho = -sigma_ui_over_d * H * (1.0 + xi * halft);
+        std::complex<double> pA1_prho = m * cosh_alpha * m_half_T * pd_prho;
+        std::complex<double> pA2_prho = -sigma_ui_over_d * H * (1.0 + xi * m_half_T);
         std::complex<double> pA_prho = (pA1_prho - A_over_v0 * pA2_prho) / A2_times_v0;
         std::complex<double> pd_phrho_minus_pA2_prho_times_d_over_A2 = pd_prho - pA2_prho * d / A2_times_v0;
         std::complex<double> pB_prho = exp_kappa_times_half_T / A2_times_v0 * pd_phrho_minus_pA2_prho_times_d_over_A2;
-        std::complex<double> h_rho = -v0 * pA_prho + two_kappa_v_bar_over_sigma_squared * pd_phrho_minus_pA2_prho_times_d_over_A2 / d + minus_kappa_v_bar_t_over_sigma * ui;
+        std::complex<double> h_rho = -v0 * pA_prho + m_two_kappa_v_bar_over_sigma_squared * pd_phrho_minus_pA2_prho_times_d_over_A2 / d + minus_kappa_v_bar_t_over_sigma * ui;
 
         // partial kappa:
         double v_bar_rho_T_over_sigma = v_bar * rho * T / sigma;
-        double two_v_bar_over_sigma_squared = two_kappa_v_bar_over_sigma_squared / kappa; // 2 * v_bar / sigma_squared;
+        double two_v_bar_over_sigma_squared = m_two_kappa_v_bar_over_sigma_squared / kappa; // 2 * v_bar / sigma_squared;
 
         std::complex<double> minus_one_over_sigma_ui = -1.0 / (sigma * ui);
-        std::complex<double> pB_pa = minus_one_over_sigma_ui * pB_prho + B * halft;
+        std::complex<double> pB_pa = minus_one_over_sigma_ui * pB_prho + B * m_half_T;
         std::complex<double> h_kappa = -v0 * pA_prho * minus_one_over_sigma_ui + two_v_bar_over_sigma_squared * lnB + kappa * two_v_bar_over_sigma_squared * pB_pa / B - v_bar_rho_T_over_sigma * ui;
 
         // partial sigma:
@@ -339,17 +332,29 @@ public:
         double four_kappa_v_bar_over_sigma_cubed = 4 * kappa * v_bar / pow(sigma, 3);
         double kappa_v_bar_rho_T_over_sigma_squared = kappa_v_bar_rho_T / m_sigma_squared;
         std::complex<double> pd_pc = (rho_over_sigma - 1.0 / xi) * pd_prho + sigma * u_squared / d;
-        std::complex<double> pA1_pc = m * cosh_alpha * halft * pd_pc;
-        std::complex<double> pA2_pc = rho_over_sigma * pA2_prho - 1.0 / ui * (2.0 / (T * xi) + 1.0) * pA1_prho + sigma * halft * A1;
+        std::complex<double> pA1_pc = m * cosh_alpha * m_half_T * pd_pc;
+        std::complex<double> pA2_pc = rho_over_sigma * pA2_prho - 1.0 / ui * (2.0 / (T * xi) + 1.0) * pA1_prho + sigma * m_half_T * A1;
         std::complex<double> pA_pc = pA1_pc / A2_times_v0 - A_over_v0 / A2_times_v0 * pA2_pc;
-        std::complex<double> h_sigma = -v0 * pA_pc - four_kappa_v_bar_over_sigma_cubed * lnB + two_kappa_v_bar_over_sigma_squared / d * (pd_pc - d / A2_times_v0 * pA2_pc) + kappa_v_bar_rho_T_over_sigma_squared * ui;
+        std::complex<double> h_sigma = -v0 * pA_pc - four_kappa_v_bar_over_sigma_cubed * lnB + m_two_kappa_v_bar_over_sigma_squared / d * (pd_pc - d / A2_times_v0 * pA2_pc) + kappa_v_bar_rho_T_over_sigma_squared * ui;
 
-        // F = S * e^((r - q) * T)
-        // characteristic function: y1 = exp(i * log(F / S) * u) * exp(-A + 2 * kappa * b / pow(sigma, 2) * D) * g
-        // But we only care about the second exponential, the rest depends only on market parameters and will be computed separately.
-        std::complex<double> char_u = exp(-v0 * A_over_v0 + two_kappa_v_bar_over_sigma_squared * D) * g;
+        return {char_u * h_kappa, char_u * h_v_bar, char_u * h_sigma, char_u * h_rho, -A_over_v0 * char_u};
+    }
 
-        return {char_u * h_kappa, char_u * h_v_bar, char_u * h_sigma, char_u * h_rho, char_u * A_over_v0};
+    std::complex<double> chf(double u, double T)
+    {
+        auto const& [kappa, vmean, sigma, rho, v0] = m_parameters;
+
+        std::complex<double> ui = 1i * u;
+        std::complex<double> u_squared = u * u;
+
+        std::complex<double> xi = kappa + sigma * rho * ui;
+        std::complex<double> m = -ui + u_squared;
+        std::complex<double> d = std::sqrt(xi * xi + m * m_sigma_squared);
+        std::complex<double> g = (xi - d) / (xi + d);
+        std::complex<double> e1 = (v0 / pow(sigma, 2)) * ((1. - std::exp(-d * T)) / (1. - g * std::exp(-d * T))) * (kappa + rho * sigma * u * 1i - d);
+        std::complex<double> e2 = ((kappa * vmean) / std::pow(sigma, 2)) * (T * (kappa + rho * sigma * u * 1i - d) - 2. * std::log((1. - g * std::exp(-d * T)) / (1. - g)));
+
+        return std::exp(e1 + e2);
     }
 
 	// The original paper used:
@@ -363,9 +368,8 @@ public:
         std::complex<double> d = std::sqrt(xi * xi + m_sigma_squared * (u * u + u * 1i));
 
         std::complex<double> r_minus = (xi - d) / m_sigma_squared;
-        std::complex<double> r_plus = (xi + d) / m_sigma_squared;
-//        std::complex<double> g1 = r_plus / r_minus;
-        std::complex<double> g2 = r_minus / r_plus;
+//        std::complex<double> r_plus = (xi + d) / m_sigma_squared;
+        std::complex<double> g2 = (xi - d) / (xi + d); // r_minus / r_plus
 
         std::complex<double> exp_minus_d_times_tau = std::exp(-d * tau);
         std::complex<double> G2 = (1.0 - exp_minus_d_times_tau) / (1.0 - g2 * exp_minus_d_times_tau);
@@ -394,18 +398,27 @@ public:
         std::complex<double> C = k * (r_plus * tau - 2.0 / m_sigma_squared * std::log((1.0 - g1 * exp_d_times_tau) / (1.0 - g1)));
 		return std::exp(C * v_bar + D * v_0);
 	}
+
     //https://arxiv.org/pdf/0909.3978.pdf
     [[nodiscard]] double GetFirstCumulant() const final
     {
+//        c1=mu*T + (1.-exp(-kappa * T)) * (vmean - v0) / (2. * kappa) - 0.5 * vmean * T;
 	    return -0.5 * m_parameters.m_v_bar * m_T;
     }
     [[nodiscard]] double GetSecondCumulant() const final
     {
-	    auto const& [a, s2, k, r, v] = m_parameters;
-        double a2 = a * a, a3 = a2 * a;
+//        p1= sigma * T * kappa * exp(-kappa * T) * (v0 - vmean) * (8. * kappa * rho - 4. * sigma);
+//        p2= kappa * rho * sigma * (1. - exp(-kappa * T)) * (16. * vmean - 8. * v0);
+//        p3= 2. * vmean * kappa * T * (-4. * kappa * rho * sigma + pow(sigma, 2) + 4. * pow(kappa, 2));
+//        p4= pow(sigma, 2) * ((vmean - 2. * v0) * exp(-2. * kappa * T) + vmean * (6. * exp(-kappa * T) - 7.) + 2. * v0);
+//        p5= 8. * pow(kappa, 2) * (v0 - vmean) * (1. - exp(-kappa * T));
+//        c2= (1./(8.*pow(kappa, 3))) * (p1 + p2 + p3 + p4 + p5);
+
+	    auto const& [kappa, s2, k, r, v] = m_parameters;
+        double kappa2 = kappa * kappa, kappa3 = kappa2 * kappa;
         double k2 = k * k;
         double t = m_T;
-	    return s2 / (8 * a3) * (-k2 * std::exp(-2 * a * t) + 4 * k * std::exp(- a * t) * (k - 2 * a * r) + 2 * a * t * (4 * a2 + k2 - 4 * a * k * r) + k * (8 * a * r - 3 * k));
+	    return s2 / (8 * kappa3) * (-k2 * std::exp(-2 * kappa * t) + 4 * k * std::exp(- kappa * t) * (k - 2 * kappa * r) + 2 * kappa * t * (4 * kappa2 + k2 - 4 * kappa * k * r) + k * (8 * kappa * r - 3 * k));
     }
     [[nodiscard]] double GetFourthCumulant() const final
     {
@@ -429,8 +442,11 @@ public:
         return HestonParameters::GetNumberOfParameters();
     }
 private:
-    double GetAlpha() const;
-
 	double m_sigma_squared;
+	double m_sigma_times_rho;
+    double m_kappa_v_bar_rho_T;
+    double m_kappa_v_bar_rho_T_over_sigma;
+    double m_half_T;
+    double m_two_kappa_v_bar_over_sigma_squared;
 	HestonParameters m_parameters;
 };

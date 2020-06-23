@@ -76,6 +76,59 @@ inline double GetHestonEuropeanPriceCuiMyChar(HestonParameters const& parameters
     return K * (0.5 * (inverse_exponential_q_times_T * S / K - inverse_exponential_r_times_T) + inverse_exponential_r_times_T / MY_PI * quadrature_value);
 }
 
+inline std::vector<double> GetHestonEuropeanGradientCuiMyChar(HestonParameters const& parameters, double S, double K, double r, double q, double T, double max_u = 200)
+{
+    // x = log(S_T / K) = log(S_t * e^(rT) / K) = log(S_t / K) + rT
+    double x = Distribution::GetXCompression(S, K, r, q, T);
+
+    HestonDistribution distribution(parameters, T);
+    auto F0 = [x, &distribution](double u)
+    {
+        std::complex<double> lhs = distribution.GetCharGradient(-(u - 1i), x)[0];
+        std::complex<double> rhs = distribution.GetCharGradient(-u, x)[0];
+        return ((lhs - rhs) / (1i * u)).real();
+    };
+    auto F1 = [x, &distribution](double u)
+    {
+        std::complex<double> lhs = distribution.GetCharGradient(-(u - 1i), x)[1];
+        std::complex<double> rhs = distribution.GetCharGradient(-u, x)[1];
+        return ((lhs - rhs) / (1i * u)).real();
+    };
+    auto F2 = [x, &distribution](double u)
+    {
+        std::complex<double> lhs = distribution.GetCharGradient(-(u - 1i), x)[2];
+        std::complex<double> rhs = distribution.GetCharGradient(-u, x)[2];
+        return ((lhs - rhs) / (1i * u)).real();
+    };
+    auto F3 = [x, &distribution](double u)
+    {
+        std::complex<double> lhs = distribution.GetCharGradient(-(u - 1i), x)[3];
+        std::complex<double> rhs = distribution.GetCharGradient(-u, x)[3];
+        return ((lhs - rhs) / (1i * u)).real();
+    };
+    auto F4 = [x, &distribution](double u)
+    {
+        std::complex<double> lhs = distribution.GetCharGradient(-(u - 1i), x)[4];
+        std::complex<double> rhs = distribution.GetCharGradient(-u, x)[4];
+        return ((lhs - rhs) / (1i * u)).real();
+    };
+
+    GaussLegendreIntegrator gauss_legendre_integrator(GaussLegendreIntegrator::GaussLegendreMode::Fast);
+    double quadrature_value0 = gauss_legendre_integrator.GetIntegral(F0, 0, max_u, 0.0);
+    double quadrature_value1 = gauss_legendre_integrator.GetIntegral(F1, 0, max_u, 0.0);
+    double quadrature_value2 = gauss_legendre_integrator.GetIntegral(F2, 0, max_u, 0.0);
+    double quadrature_value3 = gauss_legendre_integrator.GetIntegral(F3, 0, max_u, 0.0);
+    double quadrature_value4 = gauss_legendre_integrator.GetIntegral(F4, 0, max_u, 0.0);
+    double inverse_exponential_r_times_T = std::exp(-r * T);
+    return {
+        K * (inverse_exponential_r_times_T / MY_PI * quadrature_value0),
+        K * (inverse_exponential_r_times_T / MY_PI * quadrature_value1),
+        K * (inverse_exponential_r_times_T / MY_PI * quadrature_value2),
+        K * (inverse_exponential_r_times_T / MY_PI * quadrature_value3),
+        K * (inverse_exponential_r_times_T / MY_PI * quadrature_value4)
+    };
+}
+
 inline double GetBSEuropeanPriceCuiMyChar(GBMParameters const& parameters, double S, double K, double r, double q, double T)
 {
     // x = log(S_T / K) = log(S_t * e^(rT) / K) = log(S_t / K) + rT

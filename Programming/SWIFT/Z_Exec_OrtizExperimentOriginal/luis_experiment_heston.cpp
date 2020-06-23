@@ -26,8 +26,8 @@ using namespace std::complex_literals;
 #define T 45.
 
 #define  mu r
-#define lambda 1.5768
-#define eta 0.5751
+#define kappa 1.5768
+#define sigma 0.5751
 #define vmean 0.0398
 #define v0 0.0175
 #define rho -0.5711
@@ -81,13 +81,13 @@ int main()
         pw2n2=sqrt(pw2n);
 
         //Intervalo
-        c1=mu*T+(1.-exp(-lambda*T))*(vmean-v0)/(2.*lambda)-0.5*vmean*T;
-        p1=eta*T*lambda*exp(-lambda*T)*(v0-vmean)*(8.*lambda*rho-4.*eta);
-        p2=lambda*rho*eta*(1.-exp(-lambda*T))*(16.*vmean-8.*v0);
-        p3=2.*vmean*lambda*T*(-4.*lambda*rho*eta+pow(eta,2)+4.*pow(lambda,2));
-        p4=pow(eta,2)*((vmean-2.*v0)*exp(-2.*lambda*T)+vmean*(6.*exp(-lambda*T)-7.)+2.*v0);
-        p5=8.*pow(lambda,2)*(v0-vmean)*(1.-exp(-lambda*T));
-        c2=(1./(8.*pow(lambda,3)))*(p1+p2+p3+p4+p5);
+        c1=mu*T + (1.-exp(-kappa * T)) * (vmean - v0) / (2. * kappa) - 0.5 * vmean * T;
+        p1= sigma * T * kappa * exp(-kappa * T) * (v0 - vmean) * (8. * kappa * rho - 4. * sigma);
+        p2= kappa * rho * sigma * (1. - exp(-kappa * T)) * (16. * vmean - 8. * v0);
+        p3= 2. * vmean * kappa * T * (-4. * kappa * rho * sigma + pow(sigma, 2) + 4. * pow(kappa, 2));
+        p4= pow(sigma, 2) * ((vmean - 2. * v0) * exp(-2. * kappa * T) + vmean * (6. * exp(-kappa * T) - 7.) + 2. * v0);
+        p5= 8. * pow(kappa, 2) * (v0 - vmean) * (1. - exp(-kappa * T));
+        c2= (1./(8.*pow(kappa, 3))) * (p1 + p2 + p3 + p4 + p5);
 
         ext_inf=x0+c1-L*sqrt(fabs(c2));
         ext_sup=x0+c1+L*sqrt(fabs(c2));
@@ -209,10 +209,10 @@ double coef(int k)
 std::complex<double> chf(double w)
 {
     std::complex<double> e1,e2,D,G;
-    D=std::sqrt(std::pow(lambda+rho*eta*w*1i,2)+(std::pow(w,2)-w*1i)*std::pow(eta,2));
-    G=(lambda+rho*eta*w*1i-D)/(lambda+rho*eta*w*1i+D);
-    e1=-mu*w*T*1i+(v0/pow(eta,2))*((1.-std::exp(-D*T))/(1.-G*std::exp(-D*T)))*(lambda+rho*eta*w*1i-D);
-    e2=((lambda*vmean)/pow(eta,2))*(T*(lambda+rho*eta*w*1i-D)-2.*std::log((1.-G*std::exp(-D*T))/(1.-G)));
+    D=std::sqrt(std::pow(kappa + rho * sigma * w * 1i, 2) + (std::pow(w, 2) - w * 1i) * std::pow(sigma, 2));
+    G= (kappa + rho * sigma * w * 1i - D) / (kappa + rho * sigma * w * 1i + D);
+    e1=-mu*w*T*1i+ (v0/pow(sigma, 2)) * ((1. - std::exp(-D * T)) / (1. - G * std::exp(-D * T))) * (kappa + rho * sigma * w * 1i - D);
+    e2= ((kappa * vmean) / pow(sigma, 2)) * (T * (kappa + rho * sigma * w * 1i - D) - 2. * std::log((1. - G * std::exp(-D * T)) / (1. - G)));
 
     return(std::exp(-w*x0*1i)*std::exp(e1)*std::exp(e2));
 }

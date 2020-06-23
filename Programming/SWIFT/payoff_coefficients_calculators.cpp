@@ -20,7 +20,7 @@ std::vector<double> ExplicitPayoffCalculator::GetNonKPayoffCoefs(bool is_call) c
         {
             double w_j = (2.0 * j - 1.0) * MY_PI / m_params.m_N_payoff;
             double u = w_j * m_params.m_two_to_the_m;
-            std::complex<double> factor = std::exp(-1i * w_j * static_cast<double>(k));
+            std::complex<double> factor = std::exp(1i * w_j * static_cast<double>(k));
             std::complex<double> integral = m_contract.GetDefiniteIntegral(GetBoundedFrom(m_params.m_payoff_from, is_call), GetBoundedTo(m_params.m_payoff_to, is_call), u, is_call);
             complex_val += factor * integral;
         }

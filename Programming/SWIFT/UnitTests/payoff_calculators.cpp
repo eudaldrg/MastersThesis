@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(FastCoeffsTest)
 //        7
     };
 
-    Swift::DCTAndDSTPayoffCalculator dct_payoff_calculator(contract, params);
+//    Swift::DCTAndDSTPayoffCalculator dct_payoff_calculator(contract, params);
     Swift::FFTPayoffCalculator fft_payoff_calculator(contract, params);
     Swift::ExplicitVietaPayoffCalculator vieta_payoff_calculator(contract, params);
     Swift::ExplicitPayoffCalculator explicit_payoff_calculator(contract, params);

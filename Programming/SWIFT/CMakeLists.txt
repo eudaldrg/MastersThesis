@@ -12,7 +12,6 @@ set(SOURCES
         density_coefficients_calculators.h
         distributions.cpp
         distributions.h
-#        HestonCalibrator.cpp
         known_distribution_contract_combinations.h
         my_math.cpp
         my_math.h
@@ -20,8 +19,14 @@ set(SOURCES
         option_contracts.h
         payoff_coefficients_calculators.cpp
         payoff_coefficients_calculators.h
+        quick_callibration_swift.cpp
+        quick_callibration_swift.h
+        sinc_integral_approximators.cpp
+        sinc_integral_approximators.h
         swift.cpp
         swift.h
+        swift_parameters.cpp
+        swift_parameters.h
         )
 
 # For any nested file, replace "/" by  "\"
@@ -39,7 +44,8 @@ add_subdirectory(UnitTests)
 #add_subdirectory(Z_Exec_CharReports)
 #add_subdirectory(Z_Exec_CuiExperiment)
 add_subdirectory(Z_Exec_CuiExperimentOriginal)
-#add_subdirectory(Z_Exec_CallibrateBS)
-add_subdirectory(Z_Exec_OrtizExperimentOriginal)
+add_subdirectory(Z_Exec_CallibrateBS)
+add_subdirectory(Z_Exec_CallibrateHeston)
+#add_subdirectory(Z_Exec_OrtizExperimentOriginal)
 add_subdirectory(Z_Exec_ProfileAgainstOrtiz)
 #add_subdirectory(Z_Exec_HestonPricing)

@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(HestonGradientUT)
         BOOST_CHECK_CLOSE(approx_price, heston_price, MATH_EPSILON * 100);
 
 //        HestonPriceGradient heston_price_gradient = GetHestonEuropeanJacobian(parameters, F, K, r, years, q);
-//        std::vector<double> real_gradient = {heston_price_gradient.m_k, heston_price_gradient.m_v_bar, heston_price_gradient.m_sigma, heston_price_gradient.m_rho, heston_price_gradient.m_v0};
+//        std::vector<double> real_gradient = {heston_price_gradient.m_kappa, heston_price_gradient.m_v_bar, heston_price_gradient.m_sigma, heston_price_gradient.m_rho, heston_price_gradient.m_v0};
 //        std::vector<double> approx_european_heston = swift_evaluator.GetGradient(F, K, r, q);
 //        for (std::size_t param = 0; param < underlying_geometry.GetNumberOfParameters(); ++param)
 //            BOOST_CHECK_CLOSE(approx_european_heston[param], real_gradient[param], MATH_EPSILON * 100);
