@@ -137,14 +137,21 @@
 
 \paraulesclau{Derivatives Trading, Heston, SWIFT, calibration}
 \agraiments{
-Thanks to...}
+I wish to express my deepest gratitude to Luis Ortiz-Gracia for introducing me to the SWIFT method and for providing guidance and support when I needed it.
+
+I would also like to extend my deepest gratitude to Xanadu Trading Limited for providing me training in high-frequency derivatives training. In particular, to Alex Alvarez Ruiz and Florian Burkart for their role in my initial training and for sharing their knowledge through the several mathematical modelling projects I have worked on at Xanadu.
+
+Thanks to Universitat Politecnica de Catalunya, and all the professors I studied under through my bachelor and master studies.
+
+Special thanks to Centre de Formaci\`o Interdisciplinari\`a Superior (CFIS)
+}
 
 
-\abstracteng{A Heston model calibration technique is presented for European options under the Heston model. The novel Shannon Wavelets Inverse Fourier Technique (SWIFT) is expanded for European option price calibration (previously it was used only for pricing European, barrier, and bermudan options). This method has different expressions and speed-up techniques, adequate to different set-ups. These are discussed and new expressions and properties are presented for the gradient computation and option calibration.
+\abstracteng{A Heston model calibration technique is presented for European options under the Heston model. The novel Shannon Wavelets Inverse Fourier Technique (SWIFT) is extended for European option price calibration (previously it was used only for pricing European, barrier, and Bermudan options). This method has different expressions and speed-up techniques, adequate to different set-ups. These are discussed and new expressions and properties are presented for the gradient computation and option calibration.
 
-The Heston characteristic function expression recently proposed by Cui et al. is used in the SWIFT implementation due to its analytic gradient and its continuity properties.
+The Heston characteristic function expression recently proposed by \cite{cui17} is used in the SWIFT implementation due to its analytic gradient and its continuity properties.
 
-The performance, robustness, and convergence under real-market values is studied for different implementations of the SWIFT technique and compared with the option calibration scheme presented by Cui et al.
+The performance, robustness, and convergence under real-market values is studied for different implementations of the SWIFT technique and compared with the option calibration scheme presented by \cite{cui17}
 
 The SWIFT implementations are coded in C++ and uploaded to a public GitHub repository. The libray implements several of the different SWIFT expressions for GBM and Heston European options.
 }
@@ -180,7 +187,7 @@ Calibration refers to finding values for the underlying model intrisic parameter
 
 In particular, the Heston model calibration is a difficult optimization problem to solve efficiently, as it is a multidimensional optimization problem with a fairly unknown structure (it is not known whether it is a convex problem or not nor whether it generally has a single solution or not) which until recently did not have simple analytic expressions for its characteristic function gradient \cite{cui17} (the implications of not knowing the problem structure and of not having simple analytic expressions for the gradient are discussed in section \ref{subsec:calibration_difficulties}.
 
-The goal of this study is to extend the SWIFT method to calibrate complex option underlying models. In particular, the base European option pricing SWIFT method will be extended for European options under the Heston model expressions provided by Cui et al. \cite{cui17}. Then the performance of the resulting option calibration scheme will be compared against Cui's calibration technique. This calibration technique could then be extended to Barrier and Bermudan contracts following Maree et al. \cite{mar17} but will not be implemented here.
+The goal of this study is to extend the SWIFT method to calibrate complex option underlying models. In particular, the base European option pricing SWIFT method will be extended for European options under the Heston model expressions provided by \cite{cui17}. Then the performance of the resulting option calibration scheme will be compared against Cui's calibration technique. This calibration technique could then be extended to Barrier and Bermudan contracts following Maree et al. \cite{mar17} but will not be implemented here.
 
 In order to extend SWIFT for calibration, an expression of the SWIFT price gradient is provided (see section \ref{subsec:gradient}) which can benefit from several performance speed-up techniques. Some of these techniques were already presented in \cite{Ortiz-Gracia2016} and \cite{mar17} and some are new to this study and are particularly useful for the SWIFT calibration to be competitive with other highly efficient calibration techniques like Cui's. To ensure this performance competitivity several speed and robustness test are presented (see chapters \ref{chapter:study}, \ref{chapter:results}).
 
@@ -540,7 +547,7 @@ Joining the two integrals, and using the Heston characteristic function property
 \end{proof}
 \end{lem}
 
-From this expression, one can compute the analytic gradients of the option price in terms of the derivatives of the characteristic function. Then they can be used to optimize an appropriate objective function using gradient-descent based methods (See chapter \ref{chap:optimization_problem}) but, as will be explained in the next section, the analytic derivatives have not been widely used traditionally to calibrate Heston models prior to Cui et al. due to the complexity of the expressions obtained by derivating the available characteristic function expressions as eq \ref{eq:char_heston}  \cite{cui17}.
+From this expression, one can compute the analytic gradients of the option price in terms of the derivatives of the characteristic function. Then they can be used to optimize an appropriate objective function using gradient-descent based methods (See chapter \ref{chap:optimization_problem}) but, as will be explained in the next section, the analytic derivatives have not been widely used traditionally to calibrate Heston models prior to \cite{cui17} due to the complexity of the expressions obtained by derivating the available characteristic function expressions as eq \ref{eq:char_heston}  \cite{cui17}.
 
 \subsection{Calibration Difficulties} \label{subsec:calibration_difficulties}
 As opposed to simpler 1-dimensional models, Heston model calibrations is a multidimensional optimization problem with 5 degrees of freedom. Furthermore, the structure of this optimization problem is not known.
@@ -1379,7 +1386,7 @@ The values for KSWIFT and Cui have been averaged over 100 executions of the cali
 
 \section{Conclusions}
 
-An extension of the SWIFT method for European option calibration has been successfully provided in chapter \ref{chapter:swift} together with novel speed-up techniques, which proved necessary for the new calibration method to be competitive with the one presented by Cui et al.
+An extension of the SWIFT method for European option calibration has been successfully provided in chapter \ref{chapter:swift} together with novel speed-up techniques, which proved necessary for the new calibration method to be competitive with the one presented by \cite{cui17}
 
 In particular, it has been shown that the only situations where the proposed calibration is significantly slower than Cui's is when one calibrates the model uses many different maturities with no more than one or two strikes per maturity. As the number of strikes per expiry increases, the relative speed of the SWIFT method increases, and it is 10 times faster than Cui's when calibrating 40 options with a single maturity. Both extreme situations are not representative of real option trading needs, and for a reasonably real situation of 5 strikes per expiry, the SWIFT technique is slightly faster than Cui's.
 
@@ -1403,7 +1410,7 @@ All the multiple-strike approximations are needed for the SWIFT method to be com
 
 \item Most of the calibration tests with a single expiry have run into an optimal value different than the original one. It is to be seen if this is a provable property of the Heston model or if this was due instead to the specific parameter or strike/maturity values being used.
 
-\item Some of the speed-up techniques used for same-expiry European Heston option callibration with the SWIFT method could be extended to the option pricer used by Cui et al. In particular, equation \ref{eq:heston_analytic} can use $\hat{f}(u; x) = \hat{f}(u) e^{-i u x}$ to precompute $\hat{f}(u)$ only once per callibration step and per required value of u (that is, 2 evaluations per node used in the Gauss-Legendre quadrature) and precompute $e^{-i u x}$ once per strike $K_l$ (with associated $x_l$ initial state value) and required value of u, and could then be reused for all the callibration steps.
+\item Some of the speed-up techniques used for same-expiry European Heston option callibration with the SWIFT method could be extended to the option pricer used by \cite{cui17}. In particular, equation \ref{eq:heston_analytic} can use $\hat{f}(u; x) = \hat{f}(u) e^{-i u x}$ to precompute $\hat{f}(u)$ only once per callibration step and per required value of u (that is, 2 evaluations per node used in the Gauss-Legendre quadrature) and precompute $e^{-i u x}$ once per strike $K_l$ (with associated $x_l$ initial state value) and required value of u, and could then be reused for all the callibration steps.
 
 \item It would be interesting to study the properties of the SWIFT implementation proposed for a chosen set of strikes and condensed in equation \ref{step:multiple_strikes2}. In particular, the derivative of the price expression with respect to K could be computed and, if the quick properties of the SWIFT are not lost on the obtained expression, one could interpolate the values at all strikes $K_1 \leq K \leq K_M$ with splines methods that require derivatives, and not only derivative-free ones.
 
