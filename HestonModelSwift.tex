@@ -127,15 +127,15 @@
 
 % Body of document
 
-\titol{This is the long title\\[3mm] with a line skip}
+\titol{Extension Of The SWIFT \\[3mm] Option Pricing Scheme \\[3mm] For European Options Calibration \\[3mm] Under Heston Stochastic Volatility Model}
 \titolcurt{Heston Calibration using SWIFT}
 \authorStudent{Eudald Romo Grau}
-\supervisors{(name of the supervisor/s of the master's thesis)}
-\monthYear{Month, year}
+\supervisors{Luis Ortiz-Gracia}
+\monthYear{June, 2020}
 
 %\msc[2010]{Primary  	55M25, 57P10, Secondary 55P15, 57R19, 57N15.}
 
-\paraulesclau{Derivatives Trading, Heston, SWIFT, calibration}
+\paraulesclau{Options Trading, Heston, SWIFT, Calibration, Inverse Fourier Option Valuation}
 \agraiments{
 I wish to express my deepest gratitude to Luis Ortiz-Gracia for introducing me to the SWIFT method and for providing guidance and support when I needed it.
 
@@ -1262,7 +1262,9 @@ Several sets of Heston parameters will be used for the different numerical tests
 \caption{Set of Heston parameters used in the numerical tests.}\label{table:heston_params}
 \end{table}
 
-\subsection{Stress Tests}
+The initial guesses for parameters $\boldsymbol{\theta}^{(1)}$ and $\boldsymbol{\theta}^{(2)}$, used in sections \ref{subsec:stress} and \ref{subsec:speed} respectively will be $\boldsymbol{\theta}^{(1)}_{0} = (1.2, 0.2, 0.3, -0.6, 0.2)^{T}$ and $\boldsymbol{\theta}^{(2)}_{0} = (1.5768, 0.0398, 0.5751, -0.5711, 0.0175)^{T}$
+
+\subsection{Stress Tests}\label{subsec:stress}
 
 Deep ITM and OTM options are priced together with ATM options for long and short term maturities according to table \ref{table:stress}. The time until maturity $\tau$ is given in years. Thus, the expiries of 0.04 attempt to simulate a situation of around 2 weeks until expiration of the option contract.
 
@@ -1330,36 +1332,52 @@ In the cases studied here, using the iterative SWIFT parameter scheme provided i
 
 Another possibility would be to bound the error between the SWIFT price gradient and the real Heston option price gradient. If the parameters are chosen so that the first is close enough to the latter through all the domain, then every step of the gradient descent would advance in the direction to the optimum, if the real gradient is not too flat.
 
-\subsection{Speed Tests}
+\subsection{Speed Tests}\label{subsec:speed}
 
 The calibration speed has been tested for 3 different sets of strike prices and maturities, which are available in appendix \ref{app:strikes}
 
+\begin{table}[!h]
 \begin{center}
  \begin{tabular}{|c | c | c | c | c | c |} 
  \hline
  Strike/Maturities & Heston Parameters & Method & Time(sec) & I & $\epsilon_1$ \\ [0.5ex] 
  \hline
- Set 1 & $\theta_2$ & SWIFT & 6.923 & 10 & 3.932e-11 \\ 
+ Set 1 & $\boldsymbol{\theta}^{(2)}$ & SWIFT & 6.923 & 10 & 3.932e-11 \\ 
  \hline
- Set 1 & $\theta_2$ & KSWIFT & 4.501e-3 & 10 & 3.932e-11 \\
+ Set 1 & $\boldsymbol{\theta}^{(2)}$ & KSWIFT & 4.501e-3 & 10 & 3.932e-11 \\
  \hline
- Set 1 & $\theta_2$ & Cui & 4.559e-2 & 10 & 3.932e-11 \\
+ Set 1 & $\boldsymbol{\theta}^{(2)}$ & Cui & 4.559e-2 & 10 & 3.932e-11 \\
  \hline
- Set 2 & $\theta_2$ & SWIFT & 3.591e1 & 13 & 1.002e-12 \\
+ Set 2 & $\boldsymbol{\theta}^{(2)}$ & SWIFT & 35.91 & 13 & 1.002e-12 \\
  \hline
- Set 2 & $\theta_2$ & KSWIFT & 5.011e-2 & 13 & 1.002e-12 \\
+ Set 2 & $\boldsymbol{\theta}^{(2)}$ & KSWIFT & 5.011e-2 & 13 & 1.002e-12 \\
  \hline
- Set 2 & $\theta_2$ & Cui & 6.314e-2 & 13 & 1.002e-12 \\
+ Set 2 & $\boldsymbol{\theta}^{(2)}$ & Cui & 6.314e-2 & 13 & 1.002e-12 \\
  \hline
- Set 3 & $\theta_2$ & KSWIFT  & 1.727e-1 & 13 & 1.002e-12\\
+ Set 3 & $\boldsymbol{\theta}^{(2)}$ & KSWIFT  & 1.727e-1 & 13 & 1.002e-12\\
  \hline
 \end{tabular}
+\caption{Iterations and time needed to calibrate each speed scenario and objective function value reached.}\label{table:speed}
 \end{center}
+\end{table}
 
-The values for KSWIFT and Cui have been averaged over 100 executions of the calibration.
+The values for KSWIFT and Cui have been averaged over 100 executions of the calibration to provide a good estimate of the required calibration time. It can be seen that regular SWIFT is orders of magnitude slower without averaging the required time over several executions. Hence, the multiple-strike alternative formulation presented in \ref{subsec:multiple_strikes} and all the speed-up techniques discussed through chapter \ref{chapter:swift} are necessary to provide a competitive method that can be used for real-time model updating.
+
+KSWIFT performance is comparable to Cui's for Set 2, an order of magnitude faster for Set 1, and an order of magnitude slower for Set 3. It can be argued that both Set 1 and 3 are extreme cases that are not really relevant for real option trading situations: One would rarely use a single strike per expiry to calibrate an option pricing model, and using data from a single expiry only seems reasonable when trading a single option expiry (in this case, one could benefit from the speed properties of KSWIFT on scenarios like Set 1). According to \cite{cui17}, a reasonable calibration scenario consists in using option prices from strikes at with $0\%$, $\pm 25\%$, and $\pm 50\%$ BS delta (derivative of the option price with respect to the underlying price value. It has a closed analytic expression for European BS options)
+
+\begin{remark}
+All the single expiry tests (the first three tests on table \ref{table:speed}) converged to an approximated value different than $\boldsymbol{\theta}^{(2)}$ but approximated all the option prices properly. Using different initial guesses lead to different approximated values which minimized the objective function. It would be interesting to see whether this is a property of the Heston distribution (that is, it has at leas a degree of freedom when defined from option prices in a single expiry) or it is due to the specific scenario being tested.
+\end{remark}
 
 \subsection{Realistic Convergence Tests}
 
+Each of the realistic parameter sets proposed is calibrated for 100 different initial states. Each of the components of the components of the initial parameters guess is drawn uniformly at random within $\pm 10\%$ of the optimal value. 
+
+According to Cui et al. this is representative of real option calibration as, usually, the initial guess used for a certain calibration problem is the last available parameter estimation. If the calibration is updated fast enough, it is expected that the initial guess will be this close to the optimum.
+
+The maturities used in \cite{cui17} are not available, so for these tests the strike-expiry Set 2 will be used.
+
+\begin{table}[!h]
 \begin{center}
  \begin{tabular}{|c | c | c | c|} 
  \hline
@@ -1382,31 +1400,28 @@ The values for KSWIFT and Cui have been averaged over 100 executions of the cali
  $\epsilon_1$ & 2.867e-11 & 2.030e-11 & 3.643e-11\\
  \hline
 \end{tabular}
+\caption{Convergence statistics averaged over 100 calibrations. $x^a$ refers to the calibration problem's estimation of variable a.}\label{table:realistic}
 \end{center}
+\end{table}
 
 \section{Conclusions}
 
-An extension of the SWIFT method for European option calibration has been successfully provided in chapter \ref{chapter:swift} together with novel speed-up techniques, which proved necessary for the new calibration method to be competitive with the one presented by \cite{cui17}
+An extension of the SWIFT method for European option calibration has been successfully provided in chapter \ref{chapter:swift} together with novel speed-up techniques, which can radically improve the performance when several of the priced/calibrated options have the same time to maturity.
 
-In particular, it has been shown that the only situations where the proposed calibration is significantly slower than Cui's is when one calibrates the model uses many different maturities with no more than one or two strikes per maturity. As the number of strikes per expiry increases, the relative speed of the SWIFT method increases, and it is 10 times faster than Cui's when calibrating 40 options with a single maturity. Both extreme situations are not representative of real option trading needs, and for a reasonably real situation of 5 strikes per expiry, the SWIFT technique is slightly faster than Cui's.
+Some numerical issues with equation \ref{eq:char_cui} are discussed for long-term expiries when evaluated at big values of u. Following the dynamic SWIFT parameters choice method described in section \ref{subsec:approximation_error} seems to suffice to avoid these problems for a reasonable tolerance level requirement, but Cui's method needs to be adjusted manually.
 
-It has been shown that equation \ref{eq:char_cui} suffers from numerical issues for long-term expiries when evaluated at big values of u. Following the dynamic SWIFT parameters choice method described in section \ref{subsec:approximation_error} seems to suffice to avoid this problem for a reasonable tolerance level requirement (but it is still present for big values of m), but Cui's method option valuation integral needs to be truncated at a manually adjusted upper limit $\overline{u}$.
+The proposed speed-up techniques are deemed necessary in order for the new SWIFT calibration scheme to be competitive, as seen in the numerical speed tests. In particular, it has been shown that the only situations where the proposed calibration is significantly slower than Cui's is when one calibrates the model uses many different maturities with no more than one or two strikes per maturity. As the number of strikes per expiry increases, the relative speed of the SWIFT method increases, and it is 10 times faster than Cui's when calibrating 40 options with a single maturity. Both extreme situations are not representative of real option trading needs, and for a reasonably real situation of 5 strikes per expiry, the SWIFT technique is slightly faster than Cui's. A SWIFT implementation without the previously discussed speed-up techniques has also been tested and deemed non-competitive, with calibration times that reached the dozens of seconds.
 
-The proposed 
+Further, the proposed calibration scheme passes Cui's realistic calibration test for challenging Heston model parameter set-ups.
 
-\begin{itemize}
-
-\item \textbf{Speed}
-All the multiple-strike approximations are needed for the SWIFT method to be competitive with Cui. This means that SWIFT will suffer performance issues when pricing extreme cases with one single strike per expiry. It is discussed why real-market needs are more similar to a n-strikes-by-expiry case, and SWIFT showed it can keep up in this situation.
-
-\end{itemize}
+In summary, the proposed method is deemed suitable for real-time updating of option models used in human-supervised trading schemes. Neither SWIFT nor Cui's method are suitable for the most demanding algorithmic trading situations, like high-frequency trading.
 
 \subsection{Further Research}
+Through this document several lines of research have appeared that escaped the scope of the currently presented research and will be expanded upon in future studies. Some of these lines of research are:
+
 \begin{itemize}
 
-\item Expand the method to Barrier and Bermudan option.
-
-\item Proof m convergence for Heston.
+\item Expanding the calibration method to Barrier and Bermudan option, for which Cui's calibration scheme does not apply.
 
 \item Most of the calibration tests with a single expiry have run into an optimal value different than the original one. It is to be seen if this is a provable property of the Heston model or if this was due instead to the specific parameter or strike/maturity values being used.
 
