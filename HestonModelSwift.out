@@ -1,26 +1,34 @@
 \BOOKMARK [1][-]{section.1}{Motivation}{}% 1
-\BOOKMARK [1][-]{section.2}{Previous work}{}% 2
-\BOOKMARK [1][-]{section.3}{Option Valuation}{}% 3
-\BOOKMARK [2][-]{subsection.3.1}{Risk neutrality}{section.3}% 4
-\BOOKMARK [2][-]{subsection.3.2}{European Option Valuation}{section.3}% 5
-\BOOKMARK [2][-]{subsection.3.3}{Volatility smile and surface}{section.3}% 6
-\BOOKMARK [1][-]{section.4}{Black and Scholes}{}% 7
-\BOOKMARK [1][-]{section.5}{L\351vy Processes in Option Pricing}{}% 8
-\BOOKMARK [2][-]{subsection.5.1}{Underlying Process Modeling}{section.5}% 9
-\BOOKMARK [1][-]{section.6}{Heston Model}{}% 10
-\BOOKMARK [2][-]{subsection.6.1}{Calibration Difficulties}{section.6}% 11
-\BOOKMARK [1][-]{section.7}{Multi Resolution Analysis and Shannon Wavelets}{}% 12
-\BOOKMARK [2][-]{subsection.7.1}{Multi Resolution Analysis}{section.7}% 13
-\BOOKMARK [2][-]{subsection.7.2}{Shannon Wavelets}{section.7}% 14
-\BOOKMARK [1][-]{section.8}{SWIFT}{}% 15
-\BOOKMARK [2][-]{subsection.8.1}{Coefficients via Vieta's formula}{section.8}% 16
-\BOOKMARK [2][-]{subsection.8.2}{Sinc Integral}{section.8}% 17
-\BOOKMARK [1][-]{section.9}{Calibration as an optimization problem}{}% 18
-\BOOKMARK [2][-]{subsection.9.1}{Objective Function}{section.9}% 19
-\BOOKMARK [1][-]{section.10}{Characteristic function and Gradient Calculation}{}% 20
-\BOOKMARK [1][-]{section.11}{Goal}{}% 21
-\BOOKMARK [1][-]{section.12}{Body}{}% 22
-\BOOKMARK [1][-]{section.13}{Numerical Results}{}% 23
-\BOOKMARK [1][-]{section.14}{Bibliography}{}% 24
-\BOOKMARK [1][-]{appendix.A}{Title of the appendix}{}% 25
-\BOOKMARK [1][-]{appendix.B}{Title of the appendix}{}% 26
+\BOOKMARK [1][-]{section.2}{Option valuation}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{No-arbitrage assumption and risk-neutral markets}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{European option valuation}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Underlying asset models}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{L\351vy processes}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.2}{Black-Scholes-Merton model}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.3}{Implied volatility smile and surface}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.4}{The Heston model}{section.3}% 9
+\BOOKMARK [3][-]{subsubsection.3.4.1}{Calibration difficulties}{subsection.3.4}% 10
+\BOOKMARK [3][-]{subsubsection.3.4.2}{Alternative expressions}{subsection.3.4}% 11
+\BOOKMARK [1][-]{section.4}{European option valuation through SWIFT}{}% 12
+\BOOKMARK [2][-]{subsection.4.1}{Multi-resolution analysis}{section.4}% 13
+\BOOKMARK [2][-]{subsection.4.2}{Shannon wavelets}{section.4}% 14
+\BOOKMARK [2][-]{subsection.4.3}{SWIFT}{section.4}% 15
+\BOOKMARK [3][-]{subsubsection.4.3.1}{Sinc integral and density coefficients approximation}{subsection.4.3}% 16
+\BOOKMARK [3][-]{subsubsection.4.3.2}{Payoff coefficients approximation}{subsection.4.3}% 17
+\BOOKMARK [3][-]{subsubsection.4.3.3}{Fast computation of the density and payoff coefficients}{subsection.4.3}% 18
+\BOOKMARK [3][-]{subsubsection.4.3.4}{Alternative method for multiple strikes}{subsection.4.3}% 19
+\BOOKMARK [3][-]{subsubsection.4.3.5}{Option price gradient}{subsection.4.3}% 20
+\BOOKMARK [3][-]{subsubsection.4.3.6}{SWIFT parameter choice}{subsection.4.3}% 21
+\BOOKMARK [1][-]{section.5}{Option calibration}{}% 22
+\BOOKMARK [2][-]{subsection.5.1}{Objective function}{section.5}% 23
+\BOOKMARK [2][-]{subsection.5.2}{Gradient descent step}{section.5}% 24
+\BOOKMARK [1][-]{section.6}{Numerical results}{}% 25
+\BOOKMARK [2][-]{subsection.6.1}{Stress Tests}{section.6}% 26
+\BOOKMARK [2][-]{subsection.6.2}{Speed Tests}{section.6}% 27
+\BOOKMARK [2][-]{subsection.6.3}{Realistic Convergence Tests}{section.6}% 28
+\BOOKMARK [1][-]{section.7}{Conclusions}{}% 29
+\BOOKMARK [2][-]{subsection.7.1}{Further Research}{section.7}% 30
+\BOOKMARK [1][-]{appendix.A}{Code}{}% 31
+\BOOKMARK [1][-]{appendix.B}{Complimentary Formulas}{}% 32
+\BOOKMARK [2][-]{subsection.B.1}{Cui Gradient Complimentary Formulas}{appendix.B}% 33
+\BOOKMARK [2][-]{subsection.B.2}{Strike and Maturity Test Sets}{appendix.B}% 34

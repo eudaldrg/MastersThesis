@@ -1,27 +1,35 @@
 \babel@toc {english}{}
 \contentsline {section}{\numberline {1}Motivation}{4}{section.1}% 
-\contentsline {section}{\numberline {2}Previous work}{5}{section.2}% 
-\contentsline {section}{\numberline {3}Option Valuation}{5}{section.3}% 
-\contentsline {subsection}{\numberline {3.1}Risk neutrality}{6}{subsection.3.1}% 
-\contentsline {subsection}{\numberline {3.2}European Option Valuation}{6}{subsection.3.2}% 
-\contentsline {subsection}{\numberline {3.3}Volatility smile and surface}{7}{subsection.3.3}% 
-\contentsline {section}{\numberline {4}Black and Scholes}{7}{section.4}% 
-\contentsline {section}{\numberline {5}L\'evy Processes in Option Pricing}{7}{section.5}% 
-\contentsline {subsection}{\numberline {5.1}Underlying Process Modeling}{7}{subsection.5.1}% 
-\contentsline {section}{\numberline {6}Heston Model}{8}{section.6}% 
-\contentsline {subsection}{\numberline {6.1}Calibration Difficulties}{9}{subsection.6.1}% 
-\contentsline {section}{\numberline {7}Multi Resolution Analysis and Shannon Wavelets}{11}{section.7}% 
-\contentsline {subsection}{\numberline {7.1}Multi Resolution Analysis}{11}{subsection.7.1}% 
-\contentsline {subsection}{\numberline {7.2}Shannon Wavelets}{12}{subsection.7.2}% 
-\contentsline {section}{\numberline {8}SWIFT}{13}{section.8}% 
-\contentsline {subsection}{\numberline {8.1}Coefficients via Vieta's formula}{13}{subsection.8.1}% 
-\contentsline {subsection}{\numberline {8.2}Sinc Integral}{14}{subsection.8.2}% 
-\contentsline {section}{\numberline {9}Calibration as an optimization problem}{14}{section.9}% 
-\contentsline {subsection}{\numberline {9.1}Objective Function}{14}{subsection.9.1}% 
-\contentsline {section}{\numberline {10}Characteristic function and Gradient Calculation}{15}{section.10}% 
-\contentsline {section}{\numberline {11}Goal}{15}{section.11}% 
-\contentsline {section}{\numberline {12}Body}{16}{section.12}% 
-\contentsline {section}{\numberline {13}Numerical Results}{16}{section.13}% 
-\contentsline {section}{\numberline {14}Bibliography}{16}{section.14}% 
-\contentsline {section}{\numberline {A}Title of the appendix}{18}{appendix.A}% 
-\contentsline {section}{\numberline {B}Title of the appendix}{19}{appendix.B}% 
+\contentsline {section}{\numberline {2}Option valuation}{5}{section.2}% 
+\contentsline {subsection}{\numberline {2.1}No-arbitrage assumption and risk-neutral markets}{6}{subsection.2.1}% 
+\contentsline {subsection}{\numberline {2.2}European option valuation}{8}{subsection.2.2}% 
+\contentsline {section}{\numberline {3}Underlying asset models}{10}{section.3}% 
+\contentsline {subsection}{\numberline {3.1}L\'evy processes}{10}{subsection.3.1}% 
+\contentsline {subsection}{\numberline {3.2}Black-Scholes-Merton model}{11}{subsection.3.2}% 
+\contentsline {subsection}{\numberline {3.3}Implied volatility smile and surface}{11}{subsection.3.3}% 
+\contentsline {subsection}{\numberline {3.4}The Heston model}{13}{subsection.3.4}% 
+\contentsline {subsubsection}{\numberline {3.4.1}Calibration difficulties}{15}{subsubsection.3.4.1}% 
+\contentsline {subsubsection}{\numberline {3.4.2}Alternative expressions}{16}{subsubsection.3.4.2}% 
+\contentsline {section}{\numberline {4}European option valuation through SWIFT}{18}{section.4}% 
+\contentsline {subsection}{\numberline {4.1}Multi-resolution analysis}{18}{subsection.4.1}% 
+\contentsline {subsection}{\numberline {4.2}Shannon wavelets}{19}{subsection.4.2}% 
+\contentsline {subsection}{\numberline {4.3}SWIFT}{20}{subsection.4.3}% 
+\contentsline {subsubsection}{\numberline {4.3.1}Sinc integral and density coefficients approximation}{22}{subsubsection.4.3.1}% 
+\contentsline {subsubsection}{\numberline {4.3.2}Payoff coefficients approximation}{24}{subsubsection.4.3.2}% 
+\contentsline {subsubsection}{\numberline {4.3.3}Fast computation of the density and payoff coefficients}{25}{subsubsection.4.3.3}% 
+\contentsline {subsubsection}{\numberline {4.3.4}Alternative method for multiple strikes}{26}{subsubsection.4.3.4}% 
+\contentsline {subsubsection}{\numberline {4.3.5}Option price gradient}{28}{subsubsection.4.3.5}% 
+\contentsline {subsubsection}{\numberline {4.3.6}SWIFT parameter choice}{29}{subsubsection.4.3.6}% 
+\contentsline {section}{\numberline {5}Option calibration}{30}{section.5}% 
+\contentsline {subsection}{\numberline {5.1}Objective function}{30}{subsection.5.1}% 
+\contentsline {subsection}{\numberline {5.2}Gradient descent step}{31}{subsection.5.2}% 
+\contentsline {section}{\numberline {6}Numerical results}{33}{section.6}% 
+\contentsline {subsection}{\numberline {6.1}Stress Tests}{34}{subsection.6.1}% 
+\contentsline {subsection}{\numberline {6.2}Speed Tests}{36}{subsection.6.2}% 
+\contentsline {subsection}{\numberline {6.3}Realistic Convergence Tests}{37}{subsection.6.3}% 
+\contentsline {section}{\numberline {7}Conclusions}{38}{section.7}% 
+\contentsline {subsection}{\numberline {7.1}Further Research}{39}{subsection.7.1}% 
+\contentsline {section}{\numberline {A}Code}{43}{appendix.A}% 
+\contentsline {section}{\numberline {B}Complimentary Formulas}{43}{appendix.B}% 
+\contentsline {subsection}{\numberline {B.1}Cui Gradient Complimentary Formulas}{43}{subsection.B.1}% 
+\contentsline {subsection}{\numberline {B.2}Strike and Maturity Test Sets}{43}{subsection.B.2}% 

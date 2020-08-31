@@ -1,94 +1,224 @@
 \begin{thebibliography}{10}
 
-\bibitem{abr15_1}
-Sanjar~M. Abrarov and Brendan~M. Quine.
-\newblock {A Rational Approximation for Efficient Computation of the Voigt
-  Function in Quantitative Spectroscopy}.
-\newblock {\em Journal of Mathematics Research}, 7(2):163, jun 2015.
+\bibitem{lei18}
+L. Ortiz-Gracia A. Leitao and E.I. Wagner.
+\newblock {SWIFT valuation of discretely monitored arithmetic Asian options}.
+\newblock {\em Journal of Computational Science}, (28):120--139, 2018.
 
-\bibitem{bs73}
-Fischer Black and Myron Scholes.
-\newblock {The pricing of options and corporate liabilities}.
-\newblock {\em Journal of Political Economy}, 81(3):637--654, 1973.
+\bibitem{Albrecher2007}
+H. Albrecher, P. Mayer, W. Schoutens, and J. Tistaert.
+\newblock {The little Heston trap}.
+\newblock {\em Wilmott}, 2007.
+
+\bibitem{and08}
+L. Andersen.
+\newblock {Simple and efficient simulation of the Heston stochastic volatility
+  model}.
+\newblock {\em The Journal of Computational Finance}, 2008.
 
 \bibitem{che07}
-B~Chen.
-\newblock {Calibration of the Heston model with applications in derivative
+C. Bin.
+\newblock {Calibration of the heston model with application in derivative
   pricing and hedging}.
-\newblock {\em Technical University of Delft(Master's thesis)}, 2007.
+\newblock {\em Master's thesis, Department of Mathematics, TU Delft},
+  2007.
+
+\bibitem{bs73}
+F. Black and M. Scholes.
+\newblock {The pricing of options and corporate liabilities}.
+\newblock {\em Journal of Political Economy}, 81(3):637--657, 1973.
+
+\bibitem{bor10}
+G. Bormetti, V. Cazzola, G. Livan, G. Montagna, and O.
+  Nicrosini.
+\newblock {A generalized Fourier transform approach to risk measures}.
+\newblock {\em Journal of Statistical Mechanics: Theory and Experiment}, 2010.
+
+\bibitem{chr02}
+P. Christoffersen and K. Jacobs.
+\newblock {The importance of the loss function in option valuation}.
+\newblock {\em Journal of Financial Economics}, 2004.
 
 \bibitem{cla11}
-I~Clark.
+I. Clark.
 \newblock {Foreign exchange option pricing: A practitioner's guide}.
 \newblock {\em Chichester: Wiley}, 2011.
 
 \bibitem{cui17}
-Yiran Cui, Sebastian {del Ba{\~{n}}o Rollin}, and Guido Germano.
+Y. Cui, S. {del Ba{\~{n}}o Rollin}, and G. Germano.
 \newblock {Full and fast calibration of the Heston stochastic volatility
   model}.
 \newblock {\em European Journal of Operational Research}, 263(2):625--638, dec
   2017.
 
 \bibitem{dau92}
-I~Daubechies.
+I. Daubechies.
 \newblock {Ten Lectures on Wavelets}.
 \newblock {\em CBMS-NSF Reg. Conf. Ser. Appl. Math.}, 1992.
 
+\bibitem{rol10}
+S. {del Ba{\~{n}}o Rollin}, A. Ferreiro-Castilla, and F.
+  Utzet.
+\newblock {On the density of log-spot in the Heston volatility model}.
+\newblock {\em Stochastic Processes and their Applications}, 2010.
+
+\bibitem{Fang2008}
+F. Fang and C. W. Oosterlee.
+\newblock {A novel pricing method for european options based on fourier-cosine
+  series expansions}.
+\newblock {\em SIAM Journal on Scientific Computing}, 31(2):826--848, 2008.
+
+\bibitem{fer13}
+J. L. Fern{\'{a}}ndez, A. M. Ferreiro, J. A. Garc{\'{i}}a-Rodr{\'{i}}guez,
+  A. Leitao, J. G. L{\'{o}}pez-Salas, and C. V{\'{a}}zquez.
+\newblock {Static and dynamic SABR stochastic volatility models: Calibration
+  and option pricing using GPUs}.
+\newblock {\em Mathematics and Computers in Simulation}, 94:55--75, 2013.
+
+\bibitem{flo20}
+F. Le Floc'h.
+\newblock {Notes on the SWIFT method based on Shannon Wavelets for Option
+  Pricing}.
+\newblock Papers, arXiv.org, may 2020.
+
+\bibitem{fftw3}
+M. Frigo and S. G. Johnson.
+\newblock {The design and implementation of FFTW3}.
+\newblock In {\em Proceedings of the IEEE}, 2005.
+
 \bibitem{gat06}
-J~Gatheral.
+J. Gatheral.
 \newblock {The volatility surface: A practitioner's guide}.
 \newblock {\em Finance}, 357, 2006.
 
-\bibitem{ger12}
-F~Gerlich, A~M Giese, J~Maruhn, and E~Sachs.
+\bibitem{ge12}
+F. Gerlich, A. M. Giese, J. H. Maruhn, and E. W. Sachs.
 \newblock {Parameter identification in financial market models with a feasible
   point SQP algorithm}.
 \newblock {\em Computational Optimization and Applications}, 51(3):1137--1161,
-  2012.
+  apr 2012.
 
 \bibitem{gil12}
-M~Gilli and E~Schumann.
+M. Gilli and E. Schumann.
 \newblock {Calibrating option pricing models with heuristics}.
-\newblock {\em Computational Optimization and Applications}, 51(3):1137--1161,
-  2012.
+\newblock {\em Studies in Computational Intelligence}, 2011.
+
+\bibitem{gil12_2}
+M. Gilli and E. Schumann.
+\newblock {Heuristic optimisation in financial modelling}.
+\newblock {\em Annals of Operations Research}, 2012.
+
+\bibitem{gla11}
+P. Glasserman and K. Kuk Kim.
+\newblock {Gamma expansion of the Heston stochastic volatility model}.
+\newblock {\em Finance and Stochastics}, 2011.
+
+\bibitem{Heston1993}
+S. L. Heston.
+\newblock {A Closed-Form Solution for Options with Stochastic Volatility with
+  Applications to Bond and Currency Options}.
+\newblock {\em Review of Financial Studies}, 1993.
+
+\bibitem{hul09}
+J. Hull.
+\newblock {\em {Futures, Options and Other Derivatives}}.
+\newblock 2009.
+
+\bibitem{jac96}
+J. C. Jackwerth and M. Rubinstein.
+\newblock {Recovering probability distributions from option prices}.
+\newblock {\em Journal of Finance}, 51(5):1611--1631, 1996.
 
 \bibitem{jan11}
-Agnieszka Janek, Tino Kluge, Rafa{\l} Weron, and Uwe Wystup.
+A. Janek, T. Kluge, R. Weron, and U. Wystup.
 \newblock {FX smile in the Heston model}.
 \newblock In {\em Statistical Tools for Finance and Insurance}, pages 133--162.
   Springer Berlin Heidelberg, 2011.
 
+\bibitem{kal06}
+C. Kahl and P. J\"{a}ckel.
+\newblock {Not-so-complex logarithms in the Heston model}.
+\newblock {\em Wilmott Magazine}, 2006.
+
+\bibitem{lag98}
+J. C. Lagarias, J. A. Reeds, M. H. Wright, and P. E. Wright.
+\newblock {Convergence properties of the Nelder-Mead simplex method in low
+  dimensions}.
+\newblock {\em SIAM Journal on Optimization}, 1998.
+
+\bibitem{levmar}
+M. I. A. Lourakis.
+\newblock {levmar: Levenberg–Marquardt nonlinear least squares al- gorithms
+  in C/C++.}, 2004.
+
 \bibitem{tour}
-S~G Mallat.
-\newblock {\em {A wavelet tour to signal processing}}.
-\newblock Academic Press, 1999.
+S. Mallat.
+\newblock {\em {A Wavelet Tour of Signal Processing}}.
+\newblock 2009.
 
 \bibitem{mar17}
-S~C Maree, L~Ortiz-Gracia, and C~W Oosterlee.
+S. C. Maree, L. Ortiz-Gracia, and C. W. Oosterlee.
 \newblock {Pricing early-exercise and discrete barrier options by Shannon
   wavelet expansions}.
-\newblock {\em Numer. Math.}, 136:1035--1070, 2017.
+\newblock {\em Numerische Mathematik}, 136(4):1035--1070, aug 2017.
 
 \bibitem{mer73}
-Robert~C Merton.
+R. C. Merton.
 \newblock {Theory of rational option pricing}.
 \newblock {\em Bell Journal of Economics and Management Science},
   4(1):141--183, 1973.
 
 \bibitem{mik03}
-S~Mikhalov and U~N{\"{o}}gel.
-\newblock {Heston's stochastic volatility model: Implementation, calibration,
-  and some extensions}.
-\newblock {\em Wilmott Magazine}, July:74--79, 2003.
+S. Mikhailov and U. N{\"{o}}gel.
+\newblock {Heston ' s Stochastic Volatility Model Implementation , Calibration
+  and Some Extensions}.
+\newblock {\em Wilmott Magazine}, 4:74--79, 2003.
+
+\bibitem{mor78}
+J. J. Mor{\'{e}}.
+\newblock {The Levenberg-Marquardt algorithm: Implementation and theory}.
+\newblock 1978.
+
+\bibitem{Ortiz-Gracia2016}
+L. Ortiz-Gracia and C. W. Oosterlee.
+\newblock {A highly efficient shannon wavelet inverse fourier technique for
+  pricing European options}.
+\newblock {\em SIAM Journal on Scientific Computing}, 2016.
+
+\bibitem{pea00}
+C. F. Peake.
+\newblock {How Useful Are Implied Distributions? Evidence from Stock Index
+  Options}.
+\newblock {\em CFA Digest}, 2000.
+
+\bibitem{lapack}
+M. Planitz and E. Anderson.
+\newblock {LAPACK Users Guide}.
+\newblock {\em The Mathematical Gazette}, 1995.
+
+\bibitem{sch03}
+W. Schoutens.
+\newblock {\em {L{\'{e}}vy Processes in Finance}}.
+\newblock 2003.
+
+\bibitem{sch04}
+W. Schoutens, E. Simons, and J. Tistaert.
+\newblock {A perfect calibration! now what?}
+\newblock {\em Wilmott}, 2004.
 
 \bibitem{sha49}
-C~E Shannon.
-\newblock {Communication in the presence of noise}.
-\newblock {\em Proc. IRE}, 37:10--21, 1949.
+C. E. Shannon.
+\newblock {Communication in the Presence of Noise}.
+\newblock {\em Proceedings of the IRE}, 37(1):10--21, 1949.
 
 \bibitem{ste11}
-F~Stenger.
-\newblock {Handbook of sinc numerical methods}.
-\newblock {\em CRC Press}, 2001.
+F. Stenger.
+\newblock {\em {Handbook of sinc numerical methods}}.
+\newblock CRC Press, apr 2016.
+
+\bibitem{wil16}
+F. T. Willmore.
+\newblock {Debugging with gdb}.
+\newblock In {\em Introduction to Scientific and Technical Computing}. 2016.
 
 \end{thebibliography}
